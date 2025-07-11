@@ -1,0 +1,77 @@
+
+import React from 'react';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
+import { Bell, LogOut, User } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useAppData } from '@/contexts/AppDataContext';
+
+export const Header: React.FC = () => {
+  const { user, logout } = useAuth();
+  const { messages } = useAppData();
+
+  if (!user) return null;
+
+  const unreadMessages = messages.filter(m => m.toUserId === user.id && !m.isRead).length;
+
+  return (
+    <header className="h-16 bg-background border-b border-border flex items-center justify-between px-4">
+      <div className="flex items-center gap-4">
+        <SidebarTrigger />
+        <div>
+          <h1 className="text-xl font-semibold">AssetFlow Platform</h1>
+          <p className="text-sm text-muted-foreground">Gestion d'assets microservices</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        {/* Notifications */}
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-4 w-4" />
+          {unreadMessages > 0 && (
+            <span className="absolute -top-1 -right-1 h-5 w-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
+              {unreadMessages}
+            </span>
+          )}
+        </Button>
+
+        {/* Menu utilisateur */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+                <span className="text-xs font-medium text-primary-foreground">
+                  {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                </span>
+              </div>
+              <div className="hidden md:block text-left">
+                <p className="text-sm font-medium">{user.firstName} {user.lastName}</p>
+                <p className="text-xs text-muted-foreground capitalize">
+                  {user.role === 'ingenieurpr' ? 'Ingénieur' : user.role}
+                </p>
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem>
+              <User className="mr-2 h-4 w-4" />
+              Profil
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={logout} className="text-destructive">
+              <LogOut className="mr-2 h-4 w-4" />
+              Déconnexion
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
+  );
+};

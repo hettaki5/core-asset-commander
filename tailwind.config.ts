@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,15 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Couleurs métier spécifiques
+				success: 'hsl(142, 76%, 36%)',
+				warning: 'hsl(43, 89%, 38%)',
+				info: 'hsl(217, 91%, 60%)',
+				draft: 'hsl(213, 27%, 84%)',
+				pending: 'hsl(43, 89%, 70%)',
+				approved: 'hsl(142, 76%, 60%)',
+				rejected: 'hsl(0, 84%, 60%)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +93,22 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out'
 			}
 		}
 	},

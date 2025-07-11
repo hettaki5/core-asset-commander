@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +9,14 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { ChangePasswordForm } from "@/components/auth/ChangePasswordForm";
 import { Layout } from "@/components/layout/Layout";
 import { Dashboard } from "@/pages/Dashboard";
+import { Assets } from "@/pages/Assets";
+import { Configuration } from "@/pages/Configuration";
+import { Tickets } from "@/pages/Tickets";
+import { Workflows } from "@/pages/Workflows";
+import { Calendar } from "@/pages/Calendar";
+import { Messages } from "@/pages/Messages";
+import { Users } from "@/pages/Users";
+import { Logs } from "@/pages/Logs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,66 +53,42 @@ const AppRoutes: React.FC = () => {
       } />
       <Route path="/assets" element={
         <ProtectedRoute>
-          <div className="text-center p-8">
-            <h1 className="text-2xl font-bold mb-4">Gestion des Assets</h1>
-            <p className="text-muted-foreground">Module en cours de développement</p>
-          </div>
+          <Assets />
         </ProtectedRoute>
       } />
       <Route path="/config" element={
         <ProtectedRoute>
-          <div className="text-center p-8">
-            <h1 className="text-2xl font-bold mb-4">Configuration</h1>
-            <p className="text-muted-foreground">Module en cours de développement</p>
-          </div>
+          <Configuration />
         </ProtectedRoute>
       } />
       <Route path="/tickets" element={
         <ProtectedRoute>
-          <div className="text-center p-8">
-            <h1 className="text-2xl font-bold mb-4">Tickets</h1>
-            <p className="text-muted-foreground">Module en cours de développement</p>
-          </div>
+          <Tickets />
         </ProtectedRoute>
       } />
       <Route path="/workflows" element={
         <ProtectedRoute>
-          <div className="text-center p-8">
-            <h1 className="text-2xl font-bold mb-4">Workflows</h1>
-            <p className="text-muted-foreground">Module en cours de développement</p>
-          </div>
+          <Workflows />
         </ProtectedRoute>
       } />
       <Route path="/calendar" element={
         <ProtectedRoute>
-          <div className="text-center p-8">
-            <h1 className="text-2xl font-bold mb-4">Calendrier</h1>
-            <p className="text-muted-foreground">Module en cours de développement</p>
-          </div>
+          <Calendar />
         </ProtectedRoute>
       } />
       <Route path="/messages" element={
         <ProtectedRoute>
-          <div className="text-center p-8">
-            <h1 className="text-2xl font-bold mb-4">Messages</h1>
-            <p className="text-muted-foreground">Module en cours de développement</p>
-          </div>
+          <Messages />
         </ProtectedRoute>
       } />
       <Route path="/users" element={
         <ProtectedRoute>
-          <div className="text-center p-8">
-            <h1 className="text-2xl font-bold mb-4">Gestion des Utilisateurs</h1>
-            <p className="text-muted-foreground">Module en cours de développement</p>
-          </div>
+          <Users />
         </ProtectedRoute>
       } />
       <Route path="/logs" element={
         <ProtectedRoute>
-          <div className="text-center p-8">
-            <h1 className="text-2xl font-bold mb-4">Logs Système</h1>
-            <p className="text-muted-foreground">Module en cours de développement</p>
-          </div>
+          <Logs />
         </ProtectedRoute>
       } />
       <Route path="*" element={<NotFound />} />

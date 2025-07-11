@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppData } from '@/contexts/AppDataContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageSquare, Send, Inbox, Sent, Plus, Search, Eye, Reply } from 'lucide-react';
+import { MessageSquare, Send, Inbox, Plus, Search, Eye, Reply } from 'lucide-react';
 import { Message } from '@/types';
 
 export const Messages: React.FC = () => {
@@ -227,7 +226,7 @@ export const Messages: React.FC = () => {
                     variant={activeTab === 'sent' ? 'default' : 'ghost'}
                     onClick={() => setActiveTab('sent')}
                   >
-                    <Sent className="h-4 w-4 mr-2" />
+                    <Send className="h-4 w-4 mr-2" />
                     Envoyés
                   </Button>
                 </div>

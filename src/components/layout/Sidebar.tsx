@@ -85,7 +85,7 @@ const menuItems = [
 ];
 
 export const AppSidebar: React.FC = () => {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
   const { user } = useAuth();
   const location = useLocation();
 
@@ -108,12 +108,14 @@ export const AppSidebar: React.FC = () => {
       : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground';
   };
 
+  const isCollapsed = state === 'collapsed';
+
   return (
-    <Sidebar className={collapsed ? 'w-14' : 'w-64'} collapsible>
+    <Sidebar className={isCollapsed ? 'w-14' : 'w-64'} collapsible="offcanvas">
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
           <Shield className="h-8 w-8 text-sidebar-primary" />
-          {!collapsed && (
+          {!isCollapsed && (
             <div>
               <h2 className="text-lg font-semibold text-sidebar-foreground">AssetFlow</h2>
               <p className="text-xs text-sidebar-foreground/60">Microservices Platform</p>
@@ -135,7 +137,7 @@ export const AppSidebar: React.FC = () => {
                       className={getNavClassName(item.url)}
                     >
                       <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -144,7 +146,7 @@ export const AppSidebar: React.FC = () => {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {!collapsed && (
+        {!isCollapsed && (
           <SidebarGroup className="mt-auto">
             <SidebarGroupContent>
               <div className="p-4 bg-sidebar-accent rounded-lg mx-2 mb-2">

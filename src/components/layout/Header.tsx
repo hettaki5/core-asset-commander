@@ -2,8 +2,9 @@
 import React from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Bell, LogOut, User } from 'lucide-react';
+import { Bell, LogOut, User, Moon, Sun } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/components/providers/ThemeProvider';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,14 +13,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAppData } from '@/contexts/AppDataContext';
+import { useNavigate } from 'react-router-dom';
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const { messages } = useAppData();
+  const navigate = useNavigate();
 
   if (!user) return null;
 
   const unreadMessages = messages.filter(m => m.toUserId === user.id && !m.isRead).length;
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
 
   return (
     <header className="h-16 bg-background border-b border-border flex items-center justify-between px-4">
@@ -32,6 +40,15 @@ export const Header: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-2">
+        {/* Theme Toggle */}
+        <Button variant="ghost" size="icon" onClick={toggleTheme}>
+          {theme === 'dark' ? (
+            <Sun className="h-4 w-4" />
+          ) : (
+            <Moon className="h-4 w-4" />
+          )}
+        </Button>
+
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-4 w-4" />
@@ -60,9 +77,9 @@ export const Header: React.FC = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/profile')}>
               <User className="mr-2 h-4 w-4" />
-              Profil
+              Mon Profil
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout} className="text-destructive">

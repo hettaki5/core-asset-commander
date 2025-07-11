@@ -23,7 +23,8 @@ import {
   MessageSquare,
   FileText,
   Users,
-  Shield
+  Shield,
+  User
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -84,6 +85,15 @@ const menuItems = [
   }
 ];
 
+const userMenuItems = [
+  {
+    title: 'Mon Profil',
+    url: '/profile',
+    icon: User,
+    roles: ['admin', 'ingenieurpr', 'validateur', 'observateur']
+  }
+];
+
 export const AppSidebar: React.FC = () => {
   const { state } = useSidebar();
   const { user } = useAuth();
@@ -92,6 +102,10 @@ export const AppSidebar: React.FC = () => {
   if (!user) return null;
 
   const filteredMenuItems = menuItems.filter(item => 
+    item.roles.includes(user.role)
+  );
+
+  const filteredUserMenuItems = userMenuItems.filter(item => 
     item.roles.includes(user.role)
   );
 
@@ -130,6 +144,27 @@ export const AppSidebar: React.FC = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {filteredMenuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to={item.url} 
+                      className={getNavClassName(item.url)}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {!isCollapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Compte</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {filteredUserMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink 

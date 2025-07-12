@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAppData } from '@/contexts/AppDataContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -46,6 +47,7 @@ export const Messages: React.FC = () => {
     if (newMessage.subject.trim() && newMessage.content.trim() && newMessage.toUserId && user) {
       sendMessage({
         ...newMessage,
+        relatedAssetId: newMessage.relatedAssetId === 'none' ? undefined : newMessage.relatedAssetId,
         fromUserId: user.id
       });
       setNewMessage({

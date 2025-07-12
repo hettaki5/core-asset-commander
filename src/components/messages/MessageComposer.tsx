@@ -72,7 +72,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
                 <SelectValue placeholder="Sélectionner un asset" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Aucun asset</SelectItem>
+                <SelectItem value="none">Aucun asset</SelectItem>
                 {assets.map(asset => (
                   <SelectItem key={asset.id} value={asset.id}>
                     {asset.name}

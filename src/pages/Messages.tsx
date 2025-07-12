@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppData } from '@/contexts/AppDataContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,13 +23,13 @@ export const Messages: React.FC = () => {
     relatedAssetId: ''
   });
 
-  // Utilisateurs simulés pour le prototype
+  // Utilisateurs simulés pour le prototype - ensure all have valid IDs
   const users = [
     { id: '1', name: 'Jean Martin', role: 'admin' },
     { id: '2', name: 'Marie Dubois', role: 'ingenieurpr' },
     { id: '3', name: 'Pierre Durand', role: 'validateur' },
     { id: '4', name: 'Sophie Bernard', role: 'observateur' }
-  ];
+  ].filter(u => u.id && u.id.trim() !== ''); // Filter out any users with empty IDs
 
   const inboxMessages = messages.filter(msg => msg.toUserId === user?.id);
   const sentMessages = messages.filter(msg => msg.fromUserId === user?.id);

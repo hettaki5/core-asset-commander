@@ -34,6 +34,7 @@ export const CreateEventDialog: React.FC = () => {
 
     const newEvent: Omit<Event, 'id'> = {
       ...formData,
+      relatedAssetId: formData.relatedAssetId === 'none' ? undefined : formData.relatedAssetId,
       startDate: startDate.toISOString(),
       endDate: endDate?.toISOString(),
       assignedTo: ['current_user_id'],
@@ -101,7 +102,7 @@ export const CreateEventDialog: React.FC = () => {
                   <SelectValue placeholder="Sélectionner un asset" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Aucun</SelectItem>
+                  <SelectItem value="none">Aucun</SelectItem>
                   {assets.map(asset => (
                     <SelectItem key={asset.id} value={asset.id}>
                       {asset.name}

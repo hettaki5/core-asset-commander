@@ -8,25 +8,17 @@ import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Filter, MessageSquare, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, MessageSquare, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Ticket } from '@/types';
 
 export const Tickets: React.FC = () => {
-  const { tickets, createTicket, updateTicket } = useAppData();
+  const { tickets, updateTicket } = useAppData();
   const { user } = useAuth();
-  const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
-  const [newTicket, setNewTicket] = useState({
-    title: '',
-    description: '',
-    type: 'configuration' as const,
-    priority: 'medium' as const
-  });
 
   const filteredTickets = tickets.filter(ticket => {
     const matchesSearch = ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -35,25 +27,6 @@ export const Tickets: React.FC = () => {
     const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter;
     return matchesSearch && matchesStatus && matchesPriority;
   });
-
-  const canCreateTicket = ['admin', 'ingenieurpr', 'validateur'].includes(user?.role || '');
-
-  const handleCreateTicket = () => {
-    if (newTicket.title.trim() && newTicket.description.trim() && user) {
-      createTicket({
-        ...newTicket,
-        status: 'open',
-        createdBy: user.id
-      });
-      setNewTicket({
-        title: '',
-        description: '',
-        type: 'configuration',
-        priority: 'medium'
-      });
-      setIsCreating(false);
-    }
-  };
 
   const handleStatusChange = (ticketId: string, newStatus: string) => {
     updateTicket(ticketId, { status: newStatus as any });
@@ -88,14 +61,8 @@ export const Tickets: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Tickets</h1>
-          <p className="text-muted-foreground">Gérez les demandes et le support</p>
+          <p className="text-muted-foreground">Gérez les demandes et le support depuis Jira</p>
         </div>
-        {canCreateTicket && (
-          <Button onClick={() => setIsCreating(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nouveau Ticket
-          </Button>
-        )}
       </div>
 
       {/* Statistiques */}
@@ -139,75 +106,6 @@ export const Tickets: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Formulaire de création */}
-      {isCreating && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Nouveau Ticket</CardTitle>
-            <CardDescription>Créez une nouvelle demande de support ou configuration</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="title">Titre</Label>
-              <Input
-                id="title"
-                value={newTicket.title}
-                onChange={(e) => setNewTicket(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Titre du ticket"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={newTicket.description}
-                onChange={(e) => setNewTicket(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Description détaillée du problème ou de la demande"
-                rows={4}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="type">Type</Label>
-                <Select value={newTicket.type} onValueChange={(value: any) => setNewTicket(prev => ({ ...prev, type: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="configuration">Configuration</SelectItem>
-                    <SelectItem value="support">Support</SelectItem>
-                    <SelectItem value="bug">Bug</SelectItem>
-                    <SelectItem value="feature">Nouvelle fonctionnalité</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="priority">Priorité</Label>
-                <Select value={newTicket.priority} onValueChange={(value: any) => setNewTicket(prev => ({ ...prev, priority: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Faible</SelectItem>
-                    <SelectItem value="medium">Moyenne</SelectItem>
-                    <SelectItem value="high">Élevée</SelectItem>
-                    <SelectItem value="urgent">Urgente</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsCreating(false)}>
-                Annuler
-              </Button>
-              <Button onClick={handleCreateTicket}>
-                Créer le ticket
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Filtres */}
       <Card>

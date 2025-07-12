@@ -9,7 +9,8 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Filter, Download, Eye, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Filter, Download, Eye, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { CreateAssetDialog } from '@/components/assets/CreateAssetDialog';
 import { Asset } from '@/types';
 
 export const Assets: React.FC = () => {
@@ -53,12 +54,7 @@ export const Assets: React.FC = () => {
           <h1 className="text-3xl font-bold">Gestion des Assets</h1>
           <p className="text-muted-foreground">Gérez vos équipements et ressources</p>
         </div>
-        {canCreateAsset && (
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Nouvel Asset
-          </Button>
-        )}
+        {canCreateAsset && <CreateAssetDialog />}
       </div>
 
       {/* Statistiques */}

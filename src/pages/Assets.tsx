@@ -20,7 +20,12 @@ export const Assets: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
 
-  const filteredAssets = assets.filter(asset => {
+  // Filter assets for engineers to only show their own created assets
+  const userFilteredAssets = user?.role === 'ingenieurpr' 
+    ? assets.filter(asset => asset.createdBy === user.id)
+    : assets;
+
+  const filteredAssets = userFilteredAssets.filter(asset => {
     const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          asset.model.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || asset.status === statusFilter;
@@ -51,7 +56,7 @@ export const Assets: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Gestion des Assets</h1>
+          <h1 className="text-3xl font-bold">Product Lifecycle Management</h1>
           <p className="text-muted-foreground">Gérez vos équipements et ressources</p>
         </div>
         {canCreateAsset && <CreateAssetDialog />}
@@ -64,7 +69,7 @@ export const Assets: React.FC = () => {
             <CardTitle className="text-sm font-medium">Total Assets</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{assets.length}</div>
+            <div className="text-2xl font-bold">{userFilteredAssets.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -73,7 +78,7 @@ export const Assets: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              {assets.filter(a => a.status === 'pending' || a.status === 'submitted').length}
+              {userFilteredAssets.filter(a => a.status === 'pending' || a.status === 'submitted').length}
             </div>
           </CardContent>
         </Card>
@@ -83,7 +88,7 @@ export const Assets: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {assets.filter(a => a.status === 'approved').length}
+              {userFilteredAssets.filter(a => a.status === 'approved').length}
             </div>
           </CardContent>
         </Card>
@@ -93,7 +98,7 @@ export const Assets: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-600">
-              {assets.filter(a => a.status === 'draft').length}
+              {userFilteredAssets.filter(a => a.status === 'draft').length}
             </div>
           </CardContent>
         </Card>

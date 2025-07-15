@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Asset, AssetType, Ticket, Event, Message, LogEntry, WorkflowHistory } from '@/types';
 
@@ -38,12 +37,12 @@ interface AppDataContextType {
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
-// Données simulées
+// Données simulées pour le textile
 const mockAssetTypes: AssetType[] = [
   {
     id: '1',
-    name: 'Ordinateur portable',
-    description: 'Équipement informatique mobile',
+    name: 'Machine à coudre industrielle',
+    description: 'Équipement de couture pour production textile',
     isActive: true,
     sections: [
       {
@@ -61,27 +60,45 @@ const mockAssetTypes: AssetType[] = [
         name: 'Spécifications techniques',
         order: 2,
         fields: [
-          { id: '4', name: 'Processeur', type: 'text', required: false },
-          { id: '5', name: 'RAM (GB)', type: 'number', required: false },
-          { id: '6', name: 'Stockage (GB)', type: 'number', required: false }
+          { id: '4', name: 'Vitesse maximale (ppm)', type: 'number', required: false },
+          { id: '5', name: 'Type de point', type: 'select', required: false, options: ['Point droit', 'Point zigzag', 'Surjet', 'Boutonnière'] },
+          { id: '6', name: 'Longueur de bras (mm)', type: 'number', required: false }
         ]
       }
     ]
   },
   {
     id: '2',
-    name: 'Serveur',
-    description: 'Équipement serveur',
+    name: 'Métier à tisser',
+    description: 'Équipement de tissage',
     isActive: true,
     sections: [
       {
         id: '3',
-        name: 'Configuration matérielle',
+        name: 'Configuration machine',
         order: 1,
         fields: [
-          { id: '7', name: 'Type de serveur', type: 'select', required: true, options: ['Rack', 'Blade', 'Tour'] },
-          { id: '8', name: 'Nombre de CPU', type: 'number', required: true },
-          { id: '9', name: 'RAM totale (GB)', type: 'number', required: true }
+          { id: '7', name: 'Type de métier', type: 'select', required: true, options: ['Jet d\'air', 'Jet d\'eau', 'Projectile', 'Rapière'] },
+          { id: '8', name: 'Largeur de tissage (cm)', type: 'number', required: true },
+          { id: '9', name: 'Nombre de cadres', type: 'number', required: true }
+        ]
+      }
+    ]
+  },
+  {
+    id: '3',
+    name: 'Teinture',
+    description: 'Équipement de teinture textile',
+    isActive: true,
+    sections: [
+      {
+        id: '4',
+        name: 'Spécifications teinture',
+        order: 1,
+        fields: [
+          { id: '10', name: 'Capacité (kg)', type: 'number', required: true },
+          { id: '11', name: 'Température max (°C)', type: 'number', required: true },
+          { id: '12', name: 'Type de teinture', type: 'select', required: true, options: ['Réactive', 'Dispersée', 'Acide', 'Basique'] }
         ]
       }
     ]
@@ -91,15 +108,15 @@ const mockAssetTypes: AssetType[] = [
 const mockAssets: Asset[] = [
   {
     id: '1',
-    name: 'Laptop-DEV-001',
-    type: 'Ordinateur portable',
+    name: 'Juki DDL-8700',
+    type: 'Machine à coudre industrielle',
     status: 'approved',
-    model: 'Dell Latitude 7420',
-    serialNumber: 'DL7420001',
-    supplier: 'Dell Technologies',
-    assignedTo: 'Jean Dupont',
-    location: 'Bureau 201',
-    description: 'Ordinateur portable pour développeur',
+    model: 'DDL-8700',
+    serialNumber: 'JK8700001',
+    supplier: 'Juki Corporation',
+    assignedTo: 'Atelier Couture A',
+    location: 'Ligne de production 1',
+    description: 'Machine à coudre industrielle haute vitesse pour tissus légers',
     createdBy: '2',
     createdAt: '2024-01-15T10:00:00Z',
     updatedAt: '2024-01-16T14:30:00Z',
@@ -110,34 +127,105 @@ const mockAssets: Asset[] = [
         id: '1',
         name: 'Informations générales',
         fields: [
-          { id: '1', name: 'Modèle', type: 'text', value: 'Dell Latitude 7420', required: true },
-          { id: '2', name: 'Numéro de série', type: 'text', value: 'DL7420001', required: true },
+          { id: '1', name: 'Modèle', type: 'text', value: 'DDL-8700', required: true },
+          { id: '2', name: 'Numéro de série', type: 'text', value: 'JK8700001', required: true },
           { id: '3', name: 'Date d\'achat', type: 'date', value: '2024-01-10', required: false }
+        ]
+      },
+      {
+        id: '2',
+        name: 'Spécifications techniques',
+        fields: [
+          { id: '4', name: 'Vitesse maximale (ppm)', type: 'number', value: 5500, required: false },
+          { id: '5', name: 'Type de point', type: 'select', value: 'Point droit', required: false, options: ['Point droit', 'Point zigzag', 'Surjet', 'Boutonnière'] },
+          { id: '6', name: 'Longueur de bras (mm)', type: 'number', value: 305, required: false }
         ]
       }
     ]
   },
   {
     id: '2',
-    name: 'Server-PROD-001',
-    type: 'Serveur',
+    name: 'Picanol OptiMax-i',
+    type: 'Métier à tisser',
     status: 'pending',
-    model: 'HP ProLiant DL380',
-    serialNumber: 'HP380001',
-    supplier: 'Hewlett Packard Enterprise',
-    location: 'Salle serveur A',
-    description: 'Serveur de production principal',
+    model: 'OptiMax-i-190',
+    serialNumber: 'PIC190001',
+    supplier: 'Picanol Group',
+    location: 'Atelier tissage',
+    description: 'Métier à tisser jet d\'air haute performance',
     createdBy: '2',
     createdAt: '2024-01-20T09:00:00Z',
     updatedAt: '2024-01-20T09:00:00Z',
     sections: [
       {
         id: '3',
-        name: 'Configuration matérielle',
+        name: 'Configuration machine',
         fields: [
-          { id: '7', name: 'Type de serveur', type: 'select', value: 'Rack', required: true, options: ['Rack', 'Blade', 'Tour'] },
-          { id: '8', name: 'Nombre de CPU', type: 'number', value: 2, required: true },
-          { id: '9', name: 'RAM totale (GB)', type: 'number', value: 64, required: true }
+          { id: '7', name: 'Type de métier', type: 'select', value: 'Jet d\'air', required: true, options: ['Jet d\'air', 'Jet d\'eau', 'Projectile', 'Rapière'] },
+          { id: '8', name: 'Largeur de tissage (cm)', type: 'number', value: 190, required: true },
+          { id: '9', name: 'Nombre de cadres', type: 'number', value: 16, required: true }
+        ]
+      }
+    ]
+  },
+  {
+    id: '3',
+    name: 'Thies Eco-Soft',
+    type: 'Teinture',
+    status: 'draft',
+    model: 'Eco-Soft 150',
+    serialNumber: 'THI150001',
+    supplier: 'Thies GmbH',
+    location: 'Atelier teinture',
+    description: 'Machine de teinture écologique pour tissus délicats',
+    createdBy: '2',
+    createdAt: '2024-01-22T11:00:00Z',
+    updatedAt: '2024-01-22T11:00:00Z',
+    sections: [
+      {
+        id: '4',
+        name: 'Spécifications teinture',
+        fields: [
+          { id: '10', name: 'Capacité (kg)', type: 'number', value: 150, required: true },
+          { id: '11', name: 'Température max (°C)', type: 'number', value: 135, required: true },
+          { id: '12', name: 'Type de teinture', type: 'select', value: 'Réactive', required: true, options: ['Réactive', 'Dispersée', 'Acide', 'Basique'] }
+        ]
+      }
+    ]
+  },
+  {
+    id: '4',
+    name: 'Brother S-7300A',
+    type: 'Machine à coudre industrielle',
+    status: 'approved',
+    model: 'S-7300A',
+    serialNumber: 'BR7300002',
+    supplier: 'Brother Industries',
+    assignedTo: 'Atelier Couture B',
+    location: 'Ligne de production 2',
+    description: 'Machine surjeteuse industrielle',
+    createdBy: '2',
+    createdAt: '2024-01-18T14:00:00Z',
+    updatedAt: '2024-01-19T09:30:00Z',
+    validatedBy: '3',
+    validatedAt: '2024-01-19T09:30:00Z',
+    sections: [
+      {
+        id: '1',
+        name: 'Informations générales',
+        fields: [
+          { id: '1', name: 'Modèle', type: 'text', value: 'S-7300A', required: true },
+          { id: '2', name: 'Numéro de série', type: 'text', value: 'BR7300002', required: true },
+          { id: '3', name: 'Date d\'achat', type: 'date', value: '2024-01-12', required: false }
+        ]
+      },
+      {
+        id: '2',
+        name: 'Spécifications techniques',
+        fields: [
+          { id: '4', name: 'Vitesse maximale (ppm)', type: 'number', value: 7000, required: false },
+          { id: '5', name: 'Type de point', type: 'select', value: 'Surjet', required: false, options: ['Point droit', 'Point zigzag', 'Surjet', 'Boutonnière'] },
+          { id: '6', name: 'Longueur de bras (mm)', type: 'number', value: 280, required: false }
         ]
       }
     ]
@@ -163,7 +251,7 @@ const mockTickets: Ticket[] = [
 const mockEvents: Event[] = [
   {
     id: '1',
-    title: 'Maintenance serveur PROD-001',
+    title: 'Maintenance métier à tisser',
     description: 'Maintenance préventive mensuelle',
     startDate: '2024-02-15T14:00:00Z',
     endDate: '2024-02-15T16:00:00Z',
@@ -177,8 +265,8 @@ const mockEvents: Event[] = [
 const mockMessages: Message[] = [
   {
     id: '1',
-    subject: 'Validation requise pour Server-PROD-001',
-    content: 'Le serveur Server-PROD-001 est prêt pour validation. Merci de vérifier les spécifications.',
+    subject: 'Validation requise pour Picanol OptiMax-i',
+    content: 'Le métier à tisser Picanol OptiMax-i est prêt pour validation. Merci de vérifier les spécifications.',
     fromUserId: '2',
     toUserId: '3',
     relatedAssetId: '2',
@@ -266,7 +354,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       const newStatus = approved ? 'approved' : 'rejected';
       const updates: Partial<Asset> = {
         status: newStatus,
-        validatedBy: 'current_user_id', // À remplacer par l'ID de l'utilisateur connecté
+        validatedBy: 'current_user_id',
         validatedAt: new Date().toISOString()
       };
       

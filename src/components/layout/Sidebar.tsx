@@ -131,7 +131,7 @@ export const AppSidebar: React.FC = () => {
           <Shield className="h-8 w-8 text-sidebar-primary" />
           {!isCollapsed && (
             <div>
-              <h2 className="text-lg font-semibold text-sidebar-foreground">AssetFlow</h2>
+              <h2 className="text-lg font-semibold text-sidebar-foreground">PLMLAB</h2>
               <p className="text-xs text-sidebar-foreground/60">Microservices Platform</p>
             </div>
           )}

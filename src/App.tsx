@@ -106,7 +106,7 @@ const AppRoutes: React.FC = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="system" storageKey="assetflow-theme">
+    <ThemeProvider defaultTheme="light" storageKey="assetflow-theme">
       <TooltipProvider>
         <Toaster />
         <Sonner />

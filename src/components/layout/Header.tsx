@@ -2,9 +2,8 @@
 import React from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Bell, LogOut, User, Moon, Sun } from 'lucide-react';
+import { Bell, LogOut, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/components/providers/ThemeProvider';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +16,6 @@ import { useNavigate } from 'react-router-dom';
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
   const { messages } = useAppData();
   const navigate = useNavigate();
 
@@ -25,30 +23,17 @@ export const Header: React.FC = () => {
 
   const unreadMessages = messages.filter(m => m.toUserId === user.id && !m.isRead).length;
 
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
-
   return (
     <header className="h-16 bg-background border-b border-border flex items-center justify-between px-4">
       <div className="flex items-center gap-4">
         <SidebarTrigger />
         <div>
-          <h1 className="text-xl font-semibold">AssetFlow Platform</h1>
-          <p className="text-sm text-muted-foreground">Gestion d'assets microservices</p>
+          <h1 className="text-xl font-semibold">PLMLAB Platform</h1>
+          <p className="text-sm text-muted-foreground">Product Lifecycle Management</p>
         </div>
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Theme Toggle */}
-        <Button variant="ghost" size="icon" onClick={toggleTheme}>
-          {theme === 'dark' ? (
-            <Sun className="h-4 w-4" />
-          ) : (
-            <Moon className="h-4 w-4" />
-          )}
-        </Button>
-
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-4 w-4" />

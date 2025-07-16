@@ -51,7 +51,7 @@ const menuItems = [
     title: 'Tickets',
     url: '/tickets',
     icon: Ticket,
-    roles: ['admin', 'ingenieurpr', 'validateur']
+    roles: ['admin']
   },
   {
     title: 'Workflows',

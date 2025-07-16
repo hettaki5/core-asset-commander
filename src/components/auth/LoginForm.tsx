@@ -114,16 +114,6 @@ export const LoginForm: React.FC = () => {
               )}
             </Button>
           </form>
-
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm font-medium text-blue-900 mb-2">Demo accounts:</p>
-            <div className="space-y-1 text-xs text-blue-800">
-              <p><strong>Admin:</strong> admin / password123</p>
-              <p><strong>Engineer:</strong> ingenieur1 / password123</p>
-              <p><strong>Validator:</strong> validateur1 / password123</p>
-              <p><strong>Observer:</strong> observateur1 / password123</p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

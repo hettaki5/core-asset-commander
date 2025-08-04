@@ -1,6 +1,6 @@
-
-import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+// src/components/layout/Sidebar.tsx - VERSION CORRIGÉE
+import React from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -12,7 +12,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
   useSidebar,
-} from '@/components/ui/sidebar';
+} from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
   Package,
@@ -24,74 +24,74 @@ import {
   FileText,
   Users,
   Shield,
-  User
-} from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+  User,
+} from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const menuItems = [
   {
-    title: 'Dashboard',
-    url: '/',
+    title: "Dashboard",
+    url: "/",
     icon: LayoutDashboard,
-    roles: ['admin', 'ingenieurpr', 'validateur', 'observateur']
+    roles: ["admin", "ingenieurpr", "validateur", "observateur"],
   },
   {
-    title: 'Gestion des Assets',
-    url: '/assets',
+    title: "Gestion des Assets",
+    url: "/assets",
     icon: Package,
-    roles: ['admin', 'ingenieurpr', 'validateur', 'observateur']
+    roles: ["admin", "ingenieurpr", "validateur", "observateur"],
   },
   {
-    title: 'Configuration',
-    url: '/config',
+    title: "Configuration",
+    url: "/config",
     icon: Settings,
-    roles: ['admin']
+    roles: ["admin"],
   },
   {
-    title: 'Tickets',
-    url: '/tickets',
+    title: "Tickets",
+    url: "/tickets",
     icon: Ticket,
-    roles: ['admin']
+    roles: ["admin"],
   },
   {
-    title: 'Workflows',
-    url: '/workflows',
+    title: "Workflows",
+    url: "/workflows",
     icon: GitBranch,
-    roles: ['admin', 'validateur']
+    roles: ["admin", "validateur"],
   },
   {
-    title: 'Calendrier',
-    url: '/calendar',
+    title: "Calendrier",
+    url: "/calendar",
     icon: Calendar,
-    roles: ['admin', 'ingenieurpr', 'validateur']
+    roles: ["admin", "ingenieurpr", "validateur"],
   },
   {
-    title: 'Messages',
-    url: '/messages',
+    title: "Messages",
+    url: "/messages",
     icon: MessageSquare,
-    roles: ['admin', 'ingenieurpr', 'validateur']
+    roles: ["admin", "ingenieurpr", "validateur"],
   },
   {
-    title: 'Utilisateurs',
-    url: '/users',
+    title: "Utilisateurs",
+    url: "/users",
     icon: Users,
-    roles: ['admin']
+    roles: ["admin"],
   },
   {
-    title: 'Logs',
-    url: '/logs',
+    title: "Logs",
+    url: "/logs",
     icon: FileText,
-    roles: ['admin']
-  }
+    roles: ["admin"],
+  },
 ];
 
 const userMenuItems = [
   {
-    title: 'Mon Profil',
-    url: '/profile',
+    title: "Mon Profil",
+    url: "/profile",
     icon: User,
-    roles: ['admin', 'ingenieurpr', 'validateur', 'observateur']
-  }
+    roles: ["admin", "ingenieurpr", "validateur", "observateur"],
+  },
 ];
 
 export const AppSidebar: React.FC = () => {
@@ -101,38 +101,56 @@ export const AppSidebar: React.FC = () => {
 
   if (!user) return null;
 
-  const filteredMenuItems = menuItems.filter(item => 
-    item.roles.includes(user.role)
+  // Helper pour vérifier si l'utilisateur a accès à un élément
+  const hasAccessToItem = (itemRoles: string[]) => {
+    return user.roles.some((role) => itemRoles.includes(role));
+  };
+
+  // Helper pour obtenir le label du rôle principal
+  const getRoleLabel = () => {
+    if (user.roles.includes("admin")) return "Admin";
+    if (user.roles.includes("ingenieurpr")) return "Ingénieur";
+    if (user.roles.includes("validateur")) return "Validateur";
+    if (user.roles.includes("observateur")) return "Observateur";
+    return user.roles[0] || "Utilisateur";
+  };
+
+  const filteredMenuItems = menuItems.filter((item) =>
+    hasAccessToItem(item.roles)
   );
 
-  const filteredUserMenuItems = userMenuItems.filter(item => 
-    item.roles.includes(user.role)
+  const filteredUserMenuItems = userMenuItems.filter((item) =>
+    hasAccessToItem(item.roles)
   );
 
   const isActive = (path: string) => {
-    if (path === '/') {
-      return location.pathname === '/';
+    if (path === "/") {
+      return location.pathname === "/";
     }
     return location.pathname.startsWith(path);
   };
 
   const getNavClassName = (path: string) => {
-    return isActive(path) 
-      ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' 
-      : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground';
+    return isActive(path)
+      ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+      : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
   };
 
-  const isCollapsed = state === 'collapsed';
+  const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar className={isCollapsed ? 'w-14' : 'w-64'} collapsible="offcanvas">
+    <Sidebar className={isCollapsed ? "w-14" : "w-64"} collapsible="offcanvas">
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
           <Shield className="h-8 w-8 text-sidebar-primary" />
           {!isCollapsed && (
             <div>
-              <h2 className="text-lg font-semibold text-sidebar-foreground">PLMLAB</h2>
-              <p className="text-xs text-sidebar-foreground/60">Product Lifecycle Management</p>
+              <h2 className="text-lg font-semibold text-sidebar-foreground">
+                PLMLAB
+              </h2>
+              <p className="text-xs text-sidebar-foreground/60">
+                Product Lifecycle Management
+              </p>
             </div>
           )}
         </div>
@@ -146,8 +164,8 @@ export const AppSidebar: React.FC = () => {
               {filteredMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
+                    <NavLink
+                      to={item.url}
                       className={getNavClassName(item.url)}
                     >
                       <item.icon className="h-4 w-4" />
@@ -167,8 +185,8 @@ export const AppSidebar: React.FC = () => {
               {filteredUserMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
+                    <NavLink
+                      to={item.url}
                       className={getNavClassName(item.url)}
                     >
                       <item.icon className="h-4 w-4" />
@@ -188,15 +206,16 @@ export const AppSidebar: React.FC = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <div className="h-8 w-8 rounded-full bg-sidebar-primary flex items-center justify-center">
                     <span className="text-xs font-medium text-sidebar-primary-foreground">
-                      {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                      {user.firstName?.charAt(0) || "U"}
+                      {user.lastName?.charAt(0) || ""}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-sidebar-accent-foreground truncate">
                       {user.firstName} {user.lastName}
                     </p>
-                    <p className="text-xs text-sidebar-accent-foreground/60 capitalize">
-                      {user.role === 'ingenieurpr' ? 'Ingénieur' : user.role}
+                    <p className="text-xs text-sidebar-accent-foreground/60">
+                      {getRoleLabel()}
                     </p>
                   </div>
                 </div>

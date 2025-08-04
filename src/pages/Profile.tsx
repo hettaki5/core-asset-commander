@@ -1,94 +1,174 @@
-
-import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { 
-  User, 
-  Mail, 
-  Shield, 
-  Calendar, 
-  Bell, 
-  Moon, 
-  Sun, 
+import React, { useState, useEffect } from "react";
+import { useUserProfile } from "../hooks/useUserProfile";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Badge } from "../components/ui/badge";
+import { Avatar, AvatarFallback } from "../components/ui/avatar";
+import { Skeleton } from "../components/ui/skeleton";
+import {
+  User,
+  Mail,
+  Shield,
+  Calendar,
   Settings,
-  Key,
-  Save
-} from 'lucide-react';
-import { useTheme } from 'next-themes';
-import { toast } from '@/components/ui/sonner';
+  Save,
+  Phone,
+  Building,
+  MapPin,
+  Loader2,
+} from "lucide-react";
 
 export const Profile: React.FC = () => {
-  const { user } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { profile, loading, error, updateProfile, refreshProfile, isAdmin } =
+    useUserProfile();
   const [isEditing, setIsEditing] = useState(false);
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: false,
-    messages: true,
-    tickets: true
-  });
+  const [isSaving, setIsSaving] = useState(false);
 
   const [profileData, setProfileData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
-    phone: '',
-    department: 'IT',
-    location: 'Paris, France'
+    firstName: "",
+    lastName: "",
+    email: "",
   });
 
-  const handleSave = () => {
-    // Simulate saving profile data
-    toast.success('Profil mis à jour avec succès');
-    setIsEditing(false);
+  useEffect(() => {
+    if (profile) {
+      setProfileData({
+        firstName: profile.firstName || "",
+        lastName: profile.lastName || "",
+        email: profile.email || "",
+      });
+    }
+  }, [profile]);
+
+  const handleSave = async () => {
+    if (!profile) return;
+
+    setIsSaving(true);
+    try {
+      const success = await updateProfile({
+        email: profileData.email,
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+      });
+
+      if (success) {
+        setIsEditing(false);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde:", error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleNotificationChange = (key: keyof typeof notifications, value: boolean) => {
-    setNotifications(prev => ({ ...prev, [key]: value }));
-    toast.success(`Notifications ${key} ${value ? 'activées' : 'désactivées'}`);
-  };
-
-  const getRoleBadge = (role: string) => {
-    const roleConfig = {
-      admin: { label: 'Administrateur', variant: 'destructive' as const },
-      ingenieurpr: { label: 'Ingénieur', variant: 'default' as const },
-      validateur: { label: 'Validateur', variant: 'secondary' as const },
-      observateur: { label: 'Observateur', variant: 'outline' as const }
+  const getRoleBadge = (roles: string[]) => {
+    if (roles.includes("admin")) {
+      return { label: "Administrateur", variant: "destructive" as const };
+    }
+    if (roles.includes("ingenieurpr")) {
+      return { label: "Ingénieur", variant: "default" as const };
+    }
+    if (roles.includes("validateur")) {
+      return { label: "Validateur", variant: "secondary" as const };
+    }
+    if (roles.includes("observateur")) {
+      return { label: "Observateur", variant: "outline" as const };
+    }
+    return {
+      label: roles.join(", "),
+      variant: "outline" as const,
     };
-    
-    return roleConfig[role as keyof typeof roleConfig] || { label: role, variant: 'outline' as const };
   };
 
-  if (!user) return null;
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("fr-FR");
+  };
 
-  const roleBadge = getRoleBadge(user.role);
+  if (loading) {
+    return (
+      <div className="container mx-auto py-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <Skeleton className="h-10 w-24" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-4 w-64" />
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-4 mb-6">
+                  <Skeleton className="h-20 w-20 rounded-full" />
+                  <div>
+                    <Skeleton className="h-6 w-32 mb-2" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-6">
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <div className="text-center space-y-4">
+              <div className="text-red-500 text-4xl mb-4">⚠️</div>
+              <h3 className="text-lg font-semibold">Erreur de chargement</h3>
+              <p className="text-muted-foreground">{error}</p>
+              <Button onClick={refreshProfile} variant="outline">
+                Réessayer
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!profile) return null;
+
+  const roleBadge = getRoleBadge(profile.roles);
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Mon Profil</h1>
-          <p className="text-muted-foreground">Gérez vos informations personnelles et préférences</p>
+          <p className="text-muted-foreground">
+            Gérez vos informations personnelles
+          </p>
         </div>
         <Button
           onClick={() => setIsEditing(!isEditing)}
           variant={isEditing ? "outline" : "default"}
+          disabled={isSaving}
         >
           <Settings className="h-4 w-4 mr-2" />
-          {isEditing ? 'Annuler' : 'Modifier'}
+          {isEditing ? "Annuler" : "Modifier"}
         </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Profile Info */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
@@ -96,19 +176,23 @@ export const Profile: React.FC = () => {
                 <User className="h-5 w-5" />
                 Informations personnelles
               </CardTitle>
-              <CardDescription>
-                Vos informations de base et coordonnées
-              </CardDescription>
+              <CardDescription>Vos informations de base</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-4 mb-6">
                 <Avatar className="h-20 w-20">
                   <AvatarFallback className="text-xl">
-                    {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                    {profile.firstName?.charAt(0) || "U"}
+                    {profile.lastName?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="text-xl font-semibold">{user.firstName} {user.lastName}</h3>
+                  <h3 className="text-xl font-semibold">
+                    {profile.firstName} {profile.lastName}
+                  </h3>
+                  <p className="text-muted-foreground mb-2">
+                    @{profile.username}
+                  </p>
                   <Badge variant={roleBadge.variant}>{roleBadge.label}</Badge>
                 </div>
               </div>
@@ -119,7 +203,12 @@ export const Profile: React.FC = () => {
                   <Input
                     id="firstName"
                     value={profileData.firstName}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
+                    onChange={(e) =>
+                      setProfileData((prev) => ({
+                        ...prev,
+                        firstName: e.target.value,
+                      }))
+                    }
                     disabled={!isEditing}
                   />
                 </div>
@@ -128,161 +217,87 @@ export const Profile: React.FC = () => {
                   <Input
                     id="lastName"
                     value={profileData.lastName}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
+                    onChange={(e) =>
+                      setProfileData((prev) => ({
+                        ...prev,
+                        lastName: e.target.value,
+                      }))
+                    }
                     disabled={!isEditing}
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
                     value={profileData.email}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) =>
+                      setProfileData((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
+                    }
                     disabled={!isEditing}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Téléphone</Label>
-                  <Input
-                    id="phone"
-                    value={profileData.phone}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                    disabled={!isEditing}
-                    placeholder="+33 1 23 45 67 89"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="department">Département</Label>
-                  <Input
-                    id="department"
-                    value={profileData.department}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, department: e.target.value }))}
-                    disabled={!isEditing}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Localisation</Label>
-                  <Input
-                    id="location"
-                    value={profileData.location}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
-                    disabled={!isEditing}
-                  />
-                </div>
+
+                {profile.phone && (
+                  <div className="space-y-2">
+                    <Label>Téléphone</Label>
+                    <Input
+                      value={profile.phone}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                )}
+                {profile.department && (
+                  <div className="space-y-2">
+                    <Label>Département</Label>
+                    <Input
+                      value={profile.department}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                )}
+                {profile.position && (
+                  <div className="space-y-2">
+                    <Label>Poste</Label>
+                    <Input
+                      value={profile.position}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                )}
               </div>
 
               {isEditing && (
                 <div className="flex gap-2 pt-4">
-                  <Button onClick={handleSave}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Sauvegarder
+                  <Button onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
+                    {isSaving ? "Sauvegarde..." : "Sauvegarder"}
                   </Button>
-                  <Button variant="outline" onClick={() => setIsEditing(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditing(false)}
+                    disabled={isSaving}
+                  >
                     Annuler
                   </Button>
                 </div>
               )}
             </CardContent>
           </Card>
-
-          {/* Préférences */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Préférences
-              </CardTitle>
-              <CardDescription>
-                Personnalisez votre expérience utilisateur
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Thème */}
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label className="text-base">Mode sombre</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Basculer entre le thème clair et sombre
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Sun className="h-4 w-4" />
-                  <Switch
-                    checked={theme === 'dark'}
-                    onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
-                  />
-                  <Moon className="h-4 w-4" />
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Notifications */}
-              <div className="space-y-4">
-                <Label className="text-base">Notifications</Label>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label>Notifications par email</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Recevoir les notifications par email
-                      </p>
-                    </div>
-                    <Switch
-                      checked={notifications.email}
-                      onCheckedChange={(checked) => handleNotificationChange('email', checked)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label>Notifications push</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Recevoir les notifications push dans le navigateur
-                      </p>
-                    </div>
-                    <Switch
-                      checked={notifications.push}
-                      onCheckedChange={(checked) => handleNotificationChange('push', checked)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label>Messages</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Notifications pour les nouveaux messages
-                      </p>
-                    </div>
-                    <Switch
-                      checked={notifications.messages}
-                      onCheckedChange={(checked) => handleNotificationChange('messages', checked)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label>Tickets</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Notifications pour les tickets assignés
-                      </p>
-                    </div>
-                    <Switch
-                      checked={notifications.tickets}
-                      onCheckedChange={(checked) => handleNotificationChange('tickets', checked)}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-6">
-          {/* Compte */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -291,50 +306,59 @@ export const Profile: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span>{user.email}</span>
+                  <span>{profile.email}</span>
                 </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span>@{profile.username}</span>
+                </div>
+                {profile.phone && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span>{profile.phone}</span>
+                  </div>
+                )}
+                {profile.department && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Building className="h-4 w-4 text-muted-foreground" />
+                    <span>{profile.department}</span>
+                  </div>
+                )}
+                {profile.position && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span>{profile.position}</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>Créé le {new Date(user.createdAt).toLocaleDateString('fr-FR')}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Shield className="h-4 w-4 text-muted-foreground" />
-                  <Badge variant={roleBadge.variant} className="text-xs">
-                    {roleBadge.label}
-                  </Badge>
+                  <span>Créé le {formatDate(profile.createdAt)}</span>
                 </div>
               </div>
 
-              <Separator />
-
-              <Button variant="outline" size="sm" className="w-full">
-                <Key className="h-4 w-4 mr-2" />
-                Changer le mot de passe
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Activité récente */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Activité récente</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Connexion aujourd'hui à 09:15</span>
+              <div className="pt-4">
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span>Statut:</span>
+                  <Badge variant={profile.enabled ? "default" : "destructive"}>
+                    {profile.enabled ? "Actif" : "Inactif"}
+                  </Badge>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span>Ticket créé hier</span>
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span>Email vérifié:</span>
+                  <Badge
+                    variant={profile.emailVerified ? "default" : "secondary"}
+                  >
+                    {profile.emailVerified ? "Oui" : "Non"}
+                  </Badge>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                  <span>Asset mis à jour il y a 2 jours</span>
+                <div className="flex items-center justify-between text-sm">
+                  <span>Connexions:</span>
+                  <span className="text-muted-foreground">
+                    {profile.loginCount}
+                  </span>
                 </div>
               </div>
             </CardContent>

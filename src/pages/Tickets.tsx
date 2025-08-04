@@ -1,30 +1,57 @@
-
-import React, { useState } from 'react';
-import { useAppData } from '@/contexts/AppDataContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { StatusBadge } from '@/components/ui/status-badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, MessageSquare, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Ticket } from '@/types';
+import React, { useState } from "react";
+import { useAppData } from "@/contexts/AppDataContext";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Search,
+  MessageSquare,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
+import { Ticket } from "@/types";
 
 export const Tickets: React.FC = () => {
   const { tickets, updateTicket } = useAppData();
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
 
-  const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ticket.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
-    const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter;
+  const filteredTickets = tickets.filter((ticket) => {
+    const matchesSearch =
+      ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ticket.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || ticket.status === statusFilter;
+    const matchesPriority =
+      priorityFilter === "all" || ticket.priority === priorityFilter;
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
@@ -34,22 +61,27 @@ export const Tickets: React.FC = () => {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent': return 'text-red-600 bg-red-100';
-      case 'high': return 'text-orange-600 bg-orange-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'low': return 'text-green-600 bg-green-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case "urgent":
+        return "text-red-600 bg-red-100";
+      case "high":
+        return "text-orange-600 bg-orange-100";
+      case "medium":
+        return "text-yellow-600 bg-yellow-100";
+      case "low":
+        return "text-green-600 bg-green-100";
+      default:
+        return "text-gray-600 bg-gray-100";
     }
   };
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
-      case 'urgent':
-      case 'high':
+      case "urgent":
+      case "high":
         return <AlertCircle className="h-4 w-4" />;
-      case 'medium':
+      case "medium":
         return <Clock className="h-4 w-4" />;
-      case 'low':
+      case "low":
         return <CheckCircle2 className="h-4 w-4" />;
       default:
         return <Clock className="h-4 w-4" />;
@@ -61,7 +93,9 @@ export const Tickets: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Tickets</h1>
-          <p className="text-muted-foreground">Gérez les demandes et le support depuis Jira</p>
+          <p className="text-muted-foreground">
+            Gérez les demandes et le support depuis Jira
+          </p>
         </div>
       </div>
 
@@ -81,7 +115,7 @@ export const Tickets: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {tickets.filter(t => t.status === 'open').length}
+              {tickets.filter((t) => t.status === "open").length}
             </div>
           </CardContent>
         </Card>
@@ -91,7 +125,7 @@ export const Tickets: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              {tickets.filter(t => t.status === 'in_progress').length}
+              {tickets.filter((t) => t.status === "in_progress").length}
             </div>
           </CardContent>
         </Card>
@@ -101,7 +135,7 @@ export const Tickets: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {tickets.filter(t => t.status === 'resolved').length}
+              {tickets.filter((t) => t.status === "resolved").length}
             </div>
           </CardContent>
         </Card>
@@ -183,44 +217,60 @@ export const Tickets: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">
-                      {ticket.type === 'configuration' ? 'Config' :
-                       ticket.type === 'support' ? 'Support' :
-                       ticket.type === 'bug' ? 'Bug' : 'Feature'}
+                      {ticket.type === "configuration"
+                        ? "Config"
+                        : ticket.type === "support"
+                        ? "Support"
+                        : ticket.type === "bug"
+                        ? "Bug"
+                        : "Feature"}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)}`}>
+                    <div
+                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                        ticket.priority
+                      )}`}
+                    >
                       {getPriorityIcon(ticket.priority)}
-                      {ticket.priority === 'low' ? 'Faible' :
-                       ticket.priority === 'medium' ? 'Moyenne' :
-                       ticket.priority === 'high' ? 'Élevée' : 'Urgente'}
+                      {ticket.priority === "low"
+                        ? "Faible"
+                        : ticket.priority === "medium"
+                        ? "Moyenne"
+                        : ticket.priority === "high"
+                        ? "Élevée"
+                        : "Urgente"}
                     </div>
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={ticket.status} />
                   </TableCell>
                   <TableCell>
-                    {new Date(ticket.createdAt).toLocaleDateString('fr-FR')}
+                    {new Date(ticket.createdAt).toLocaleDateString("fr-FR")}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm">
                         <MessageSquare className="h-4 w-4" />
                       </Button>
-                      {ticket.status === 'open' && (
-                        <Button 
-                          variant="ghost" 
+                      {ticket.status === "open" && (
+                        <Button
+                          variant="ghost"
                           size="sm"
-                          onClick={() => handleStatusChange(ticket.id, 'in_progress')}
+                          onClick={() =>
+                            handleStatusChange(ticket.id, "in_progress")
+                          }
                         >
                           Prendre en charge
                         </Button>
                       )}
-                      {ticket.status === 'in_progress' && (
-                        <Button 
-                          variant="ghost" 
+                      {ticket.status === "in_progress" && (
+                        <Button
+                          variant="ghost"
                           size="sm"
-                          onClick={() => handleStatusChange(ticket.id, 'resolved')}
+                          onClick={() =>
+                            handleStatusChange(ticket.id, "resolved")
+                          }
                         >
                           Résoudre
                         </Button>

@@ -1,60 +1,68 @@
-
-import React, { useState } from 'react';
-import { useAppData } from '@/contexts/AppDataContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { Message } from '@/types';
-import { MessageStats } from '@/components/messages/MessageStats';
-import { MessageComposer } from '@/components/messages/MessageComposer';
-import { MessageList } from '@/components/messages/MessageList';
-import { MessageDetail } from '@/components/messages/MessageDetail';
+import React, { useState } from "react";
+import { useAppData } from "@/contexts/AppDataContext";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { Message } from "@/types";
+import { MessageStats } from "@/components/messages/MessageStats";
+import { MessageComposer } from "@/components/messages/MessageComposer";
+import { MessageList } from "@/components/messages/MessageList";
+import { MessageDetail } from "@/components/messages/MessageDetail";
 
 export const Messages: React.FC = () => {
   const { messages, sendMessage, markMessageAsRead, assets } = useAppData();
   const { user } = useAuth();
   const [isComposing, setIsComposing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'inbox' | 'sent'>('inbox');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<"inbox" | "sent">("inbox");
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [newMessage, setNewMessage] = useState({
-    subject: '',
-    content: '',
-    toUserId: '',
-    relatedAssetId: ''
+    subject: "",
+    content: "",
+    toUserId: "",
+    relatedAssetId: "",
   });
 
   // Utilisateurs simulés pour le prototype - ensure all have valid IDs
   const users = [
-    { id: '1', name: 'Jean Martin', role: 'admin' },
-    { id: '2', name: 'Marie Dubois', role: 'ingenieurpr' },
-    { id: '3', name: 'Pierre Durand', role: 'validateur' },
-    { id: '4', name: 'Sophie Bernard', role: 'observateur' }
-  ].filter(u => u.id && u.id.trim() !== ''); // Filter out any users with empty IDs
+    { id: "1", name: "Jean Martin", role: "admin" },
+    { id: "2", name: "Marie Dubois", role: "ingenieurpr" },
+    { id: "3", name: "Pierre Durand", role: "validateur" },
+    { id: "4", name: "Sophie Bernard", role: "observateur" },
+  ].filter((u) => u.id && u.id.trim() !== ""); // Filter out any users with empty IDs
 
-  const inboxMessages = messages.filter(msg => msg.toUserId === user?.id);
-  const sentMessages = messages.filter(msg => msg.fromUserId === user?.id);
-  const currentMessages = activeTab === 'inbox' ? inboxMessages : sentMessages;
+  const inboxMessages = messages.filter((msg) => msg.toUserId === user?.id);
+  const sentMessages = messages.filter((msg) => msg.fromUserId === user?.id);
+  const currentMessages = activeTab === "inbox" ? inboxMessages : sentMessages;
 
-  const filteredMessages = currentMessages.filter(msg =>
-    msg.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    msg.content.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredMessages = currentMessages.filter(
+    (msg) =>
+      msg.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      msg.content.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const unreadCount = inboxMessages.filter(msg => !msg.isRead).length;
+  const unreadCount = inboxMessages.filter((msg) => !msg.isRead).length;
 
   const handleSendMessage = () => {
-    if (newMessage.subject.trim() && newMessage.content.trim() && newMessage.toUserId && user) {
+    if (
+      newMessage.subject.trim() &&
+      newMessage.content.trim() &&
+      newMessage.toUserId &&
+      user
+    ) {
       sendMessage({
         ...newMessage,
-        relatedAssetId: newMessage.relatedAssetId === 'none' ? undefined : newMessage.relatedAssetId,
-        fromUserId: user.id
+        relatedAssetId:
+          newMessage.relatedAssetId === "none"
+            ? undefined
+            : newMessage.relatedAssetId,
+        fromUserId: user.id,
       });
       setNewMessage({
-        subject: '',
-        content: '',
-        toUserId: '',
-        relatedAssetId: ''
+        subject: "",
+        content: "",
+        toUserId: "",
+        relatedAssetId: "",
       });
       setIsComposing(false);
     }
@@ -68,14 +76,14 @@ export const Messages: React.FC = () => {
   };
 
   const getUserName = (userId: string) => {
-    const foundUser = users.find(u => u.id === userId);
-    return foundUser ? foundUser.name : 'Utilisateur inconnu';
+    const foundUser = users.find((u) => u.id === userId);
+    return foundUser ? foundUser.name : "Utilisateur inconnu";
   };
 
   const getAssetName = (assetId?: string) => {
     if (!assetId) return null;
-    const asset = assets.find(a => a.id === assetId);
-    return asset ? asset.name : 'Asset inconnu';
+    const asset = assets.find((a) => a.id === assetId);
+    return asset ? asset.name : "Asset inconnu";
   };
 
   return (

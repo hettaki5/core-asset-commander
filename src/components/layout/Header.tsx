@@ -1,18 +1,18 @@
-
-import React from 'react';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { Bell, LogOut, User } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+// src/components/layout/Header.tsx - VERSION CORRIGÉE
+import React from "react";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Bell, LogOut, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useAppData } from '@/contexts/AppDataContext';
-import { useNavigate } from 'react-router-dom';
+} from "@/components/ui/dropdown-menu";
+import { useAppData } from "@/contexts/AppDataContext";
+import { useNavigate } from "react-router-dom";
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -21,7 +21,18 @@ export const Header: React.FC = () => {
 
   if (!user) return null;
 
-  const unreadMessages = messages.filter(m => m.toUserId === user.id && !m.isRead).length;
+  const unreadMessages = messages.filter(
+    (m) => m.toUserId === user.id && !m.isRead
+  ).length;
+
+  // Helper pour obtenir le label du rôle principal
+  const getRoleLabel = () => {
+    if (user.roles.includes("admin")) return "Admin";
+    if (user.roles.includes("ingenieurpr")) return "Ingénieur";
+    if (user.roles.includes("validateur")) return "Validateur";
+    if (user.roles.includes("observateur")) return "Observateur";
+    return user.roles[0] || "Utilisateur";
+  };
 
   return (
     <header className="h-16 bg-background border-b border-border flex items-center justify-between px-4">
@@ -29,7 +40,9 @@ export const Header: React.FC = () => {
         <SidebarTrigger />
         <div>
           <h1 className="text-xl font-semibold">PLMLAB Platform</h1>
-          <p className="text-sm text-muted-foreground">Product Lifecycle Management</p>
+          <p className="text-sm text-muted-foreground">
+            Product Lifecycle Management
+          </p>
         </div>
       </div>
 
@@ -50,19 +63,22 @@ export const Header: React.FC = () => {
             <Button variant="ghost" className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
                 <span className="text-xs font-medium text-primary-foreground">
-                  {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                  {user.firstName?.charAt(0) || "U"}
+                  {user.lastName?.charAt(0) || ""}
                 </span>
               </div>
               <div className="hidden md:block text-left">
-                <p className="text-sm font-medium">{user.firstName} {user.lastName}</p>
-                <p className="text-xs text-muted-foreground capitalize">
-                  {user.role === 'ingenieurpr' ? 'Ingénieur' : user.role}
+                <p className="text-sm font-medium">
+                  {user.firstName} {user.lastName}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {getRoleLabel()}
                 </p>
               </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem onClick={() => navigate('/profile')}>
+            <DropdownMenuItem onClick={() => navigate("/profile")}>
               <User className="mr-2 h-4 w-4" />
               Mon Profil
             </DropdownMenuItem>

@@ -1,21 +1,111 @@
+// Types pour l'application microservices - VERSION SANS ERREURS ANY
 
-// Types pour l'application microservices
-
+// ✅ INTERFACE USER ÉTENDUE POUR COMPATIBILITÉ
 export interface User {
   id: string;
   username: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: UserRole;
-  isActive: boolean;
-  mustChangePassword?: boolean;
+  roles: UserRole[]; // ✅ CHANGÉ: Array au lieu de single role
+  role?: UserRole; // ✅ GARDE pour rétrocompatibilité
+  enabled: boolean; // ✅ AJOUTÉ: Remplace isActive
+  isActive?: boolean; // ✅ GARDE pour rétrocompatibilité
+  status: string; // ✅ AJOUTÉ
+  emailVerified: boolean; // ✅ AJOUTÉ
+  mustChangePassword: boolean; // ✅ ÉTENDU: Plus optionnel
   createdAt: string;
-  lastLogin?: string;
+  updatedAt: string; // ✅ AJOUTÉ
+  createdBy: string; // ✅ AJOUTÉ
+  createdByName: string; // ✅ AJOUTÉ
+  department?: string; // ✅ AJOUTÉ
+  position?: string; // ✅ AJOUTÉ
+  phone?: string; // ✅ AJOUTÉ
+  lastLoginAt?: string; // ✅ RENOMMÉ de lastLogin
+  lastLogin?: string; // ✅ GARDE pour rétrocompatibilité
+  loginCount: number; // ✅ AJOUTÉ
 }
 
-export type UserRole = 'admin' | 'ingenieurpr' | 'validateur' | 'observateur';
+export type UserRole = "admin" | "ingenieurpr" | "validateur" | "observateur";
 
+// ✅ NOUVELLES INTERFACES POUR GESTION UTILISATEURS
+export interface CreateUserRequest {
+  username: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  roles: UserRole[];
+  department?: string;
+  position?: string;
+  phone?: string;
+}
+
+export interface UpdateUserRequest {
+  username?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  roles?: UserRole[];
+  department?: string;
+  position?: string;
+  phone?: string;
+  enabled?: boolean;
+  status?: string;
+  mustChangePassword?: boolean;
+}
+
+export interface UserListResponse {
+  users: User[];
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
+  size: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
+export interface UserStats {
+  totalUsers: number;
+  activeUsers: number;
+  inactiveUsers: number;
+  usersRequiringPasswordChange: number;
+  usersByRole: Record<string, number>;
+  usersByDepartment: Record<string, number>;
+  usersByStatus: Record<string, number>;
+  newUsersThisMonth: number;
+}
+
+export interface ListUsersFilters {
+  page?: number;
+  size?: number;
+  search?: string;
+  roles?: string[];
+  statuses?: string[];
+  enabled?: boolean;
+  department?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}
+
+// ✅ INTERFACE GÉNÉRIQUE API RESPONSE
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+  timestamp: string;
+}
+
+// ✅ TYPES POUR ASSET FIELD VALUE (au lieu de any)
+export type AssetFieldValue =
+  | string
+  | number
+  | boolean
+  | Date
+  | string[]
+  | null;
+
+// ✅ GARDE TES INTERFACES EXISTANTES (Assets, Tickets, etc.)
 export interface Asset {
   id: string;
   name: string;
@@ -36,7 +126,12 @@ export interface Asset {
   sections: AssetSection[];
 }
 
-export type AssetStatus = 'draft' | 'submitted' | 'pending' | 'approved' | 'rejected';
+export type AssetStatus =
+  | "draft"
+  | "submitted"
+  | "pending"
+  | "approved"
+  | "rejected";
 
 export interface AssetSection {
   id: string;
@@ -47,8 +142,8 @@ export interface AssetSection {
 export interface AssetField {
   id: string;
   name: string;
-  type: 'text' | 'number' | 'date' | 'select' | 'textarea' | 'boolean';
-  value: any;
+  type: "text" | "number" | "date" | "select" | "textarea" | "boolean";
+  value: AssetFieldValue; // ✅ CORRIGÉ: Plus de any
   required: boolean;
   options?: string[];
 }
@@ -71,7 +166,7 @@ export interface AssetSectionTemplate {
 export interface AssetFieldTemplate {
   id: string;
   name: string;
-  type: 'text' | 'number' | 'date' | 'select' | 'textarea' | 'boolean';
+  type: "text" | "number" | "date" | "select" | "textarea" | "boolean";
   required: boolean;
   options?: string[];
   validation?: string;
@@ -81,9 +176,9 @@ export interface Ticket {
   id: string;
   title: string;
   description: string;
-  type: 'configuration' | 'support' | 'bug' | 'feature';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  type: "configuration" | "support" | "bug" | "feature";
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "open" | "in_progress" | "resolved" | "closed";
   assignedTo?: string;
   createdBy: string;
   createdAt: string;
@@ -95,7 +190,7 @@ export interface Ticket {
 export interface WorkflowHistory {
   id: string;
   entityId: string;
-  entityType: 'asset' | 'ticket';
+  entityType: "asset" | "ticket";
   fromStatus: string;
   toStatus: string;
   performedBy: string;
@@ -109,7 +204,7 @@ export interface Event {
   description?: string;
   startDate: string;
   endDate?: string;
-  type: 'maintenance' | 'meeting' | 'deadline' | 'reminder';
+  type: "maintenance" | "meeting" | "deadline" | "reminder";
   relatedAssetId?: string;
   relatedTicketId?: string;
   assignedTo: string[];
@@ -131,11 +226,11 @@ export interface Message {
 export interface LogEntry {
   id: string;
   action: string;
-  entityType: 'user' | 'asset' | 'ticket' | 'config';
+  entityType: "user" | "asset" | "ticket" | "config";
   entityId: string;
   performedBy: string;
   performedAt: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>; // ✅ CORRIGÉ: Plus de any
   ipAddress?: string;
 }
 
@@ -143,11 +238,16 @@ export interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string
+  ) => Promise<boolean>;
   isLoading: boolean;
 }
 
-export interface ApiResponse<T> {
+// ✅ GARDE POUR RÉTROCOMPATIBILITÉ MAIS DÉPRÉCIÉE
+/** @deprecated Use ApiResponse<T> instead */
+export interface ApiResponseLegacy<T> {
   data: T;
   message?: string;
   success: boolean;
@@ -159,4 +259,52 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+// ✅ TYPES UTILITAIRES POUR ADMIN
+export interface AdminPermissions {
+  canCreateUsers: boolean;
+  canEditUsers: boolean;
+  canDeleteUsers: boolean;
+  canManageRoles: boolean;
+  canResetPasswords: boolean;
+  canViewLogs: boolean;
+}
+
+export interface TableAction<T = unknown> {
+  id: string;
+  label: string;
+  icon: React.ComponentType;
+  color?: "default" | "destructive" | "secondary";
+  onClick: (item: T) => void;
+  disabled?: boolean;
+}
+
+export interface ModalState<T = unknown> {
+  isOpen: boolean;
+  data?: T;
+  loading?: boolean;
+}
+
+export interface FilterState {
+  search: string;
+  role: string;
+  status: string;
+  department?: string;
+}
+
+export interface PaginationState {
+  currentPage: number;
+  totalPages: number;
+  totalElements: number;
+  size: number;
+}
+
+// ✅ TYPE POUR STATISTIQUES ÉTENDUES (au lieu de any dans adminUserService)
+export interface ExtendedUserStats extends UserStats {
+  basic: UserStats;
+  newUsersLastWeek: number;
+  newUsersLastMonth: number;
+  deletedUsers: number;
+  pendingUsers: number;
 }

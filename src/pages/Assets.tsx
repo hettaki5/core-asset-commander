@@ -1,53 +1,91 @@
-
-import React, { useState } from 'react';
-import { useAppData } from '@/contexts/AppDataContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { StatusBadge } from '@/components/ui/status-badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, Download, Eye, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
-import { CreateAssetDialog } from '@/components/assets/CreateAssetDialog';
-import { Asset } from '@/types';
+import React, { useState } from "react";
+import { useAppData } from "@/contexts/AppDataContext";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Search,
+  Filter,
+  Download,
+  Eye,
+  Edit,
+  Trash2,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { CreateAssetDialog } from "@/components/assets/CreateAssetDialog";
+import { Asset } from "@/types";
 
 export const Assets: React.FC = () => {
-  const { assets, assetTypes, submitAsset, validateAsset, deleteAsset } = useAppData();
+  const { assets, assetTypes, submitAsset, validateAsset, deleteAsset } =
+    useAppData();
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
 
   // Filter assets for engineers to only show their own created assets
-  const userFilteredAssets = user?.role === 'ingenieurpr' 
-    ? assets.filter(asset => asset.createdBy === user.id)
+  const userFilteredAssets = user?.roles.includes("ingenieurpr")
+    ? assets.filter((asset) => asset.createdBy === user.id)
     : assets;
 
-  const filteredAssets = userFilteredAssets.filter(asset => {
-    const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         asset.model.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || asset.status === statusFilter;
-    const matchesType = typeFilter === 'all' || asset.type === typeFilter;
+  const filteredAssets = userFilteredAssets.filter((asset) => {
+    const matchesSearch =
+      asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      asset.model.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || asset.status === statusFilter;
+    const matchesType = typeFilter === "all" || asset.type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  const canCreateAsset = ['admin', 'ingenieurpr'].includes(user?.role || '');
-  const canValidateAsset = ['admin', 'validateur'].includes(user?.role || '');
-  const canEditAsset = ['admin', 'ingenieurpr'].includes(user?.role || '');
+  const canCreateAsset = user?.roles.some((role) =>
+    ["admin", "ingenieurpr"].includes(role)
+  );
+  const canValidateAsset = user?.roles.some((role) =>
+    ["admin", "validateur"].includes(role)
+  );
+  const canEditAsset = user?.roles.some((role) =>
+    ["admin", "ingenieurpr"].includes(role)
+  );
 
   const handleSubmitAsset = (assetId: string) => {
     submitAsset(assetId);
   };
 
   const handleValidateAsset = (assetId: string, approved: boolean) => {
-    const comment = approved ? 'Validé automatiquement' : 'Rejeté automatiquement';
+    const comment = approved
+      ? "Validé automatiquement"
+      : "Rejeté automatiquement";
     validateAsset(assetId, approved, comment);
   };
 
   const handleDeleteAsset = (assetId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cet asset ?')) {
+    if (confirm("Êtes-vous sûr de vouloir supprimer cet asset ?")) {
       deleteAsset(assetId);
     }
   };
@@ -57,7 +95,9 @@ export const Assets: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Product Lifecycle Management</h1>
-          <p className="text-muted-foreground">Gérez vos équipements et ressources</p>
+          <p className="text-muted-foreground">
+            Gérez vos équipements et ressources
+          </p>
         </div>
         {canCreateAsset && <CreateAssetDialog />}
       </div>
@@ -69,7 +109,9 @@ export const Assets: React.FC = () => {
             <CardTitle className="text-sm font-medium">Total Assets</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{userFilteredAssets.length}</div>
+            <div className="text-2xl font-bold">
+              {userFilteredAssets.length}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -78,7 +120,11 @@ export const Assets: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              {userFilteredAssets.filter(a => a.status === 'pending' || a.status === 'submitted').length}
+              {
+                userFilteredAssets.filter(
+                  (a) => a.status === "pending" || a.status === "submitted"
+                ).length
+              }
             </div>
           </CardContent>
         </Card>
@@ -88,7 +134,7 @@ export const Assets: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {userFilteredAssets.filter(a => a.status === 'approved').length}
+              {userFilteredAssets.filter((a) => a.status === "approved").length}
             </div>
           </CardContent>
         </Card>
@@ -98,7 +144,7 @@ export const Assets: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-600">
-              {userFilteredAssets.filter(a => a.status === 'draft').length}
+              {userFilteredAssets.filter((a) => a.status === "draft").length}
             </div>
           </CardContent>
         </Card>
@@ -141,7 +187,7 @@ export const Assets: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les types</SelectItem>
-                {assetTypes.map(type => (
+                {assetTypes.map((type) => (
                   <SelectItem key={type.id} value={type.name}>
                     {type.name}
                   </SelectItem>
@@ -181,8 +227,8 @@ export const Assets: React.FC = () => {
                   <TableCell>
                     <StatusBadge status={asset.status} />
                   </TableCell>
-                  <TableCell>{asset.assignedTo || '-'}</TableCell>
-                  <TableCell>{asset.location || '-'}</TableCell>
+                  <TableCell>{asset.assignedTo || "-"}</TableCell>
+                  <TableCell>{asset.location || "-"}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm">
@@ -193,26 +239,26 @@ export const Assets: React.FC = () => {
                           <Edit className="h-4 w-4" />
                         </Button>
                       )}
-                      {asset.status === 'draft' && canEditAsset && (
-                        <Button 
-                          variant="ghost" 
+                      {asset.status === "draft" && canEditAsset && (
+                        <Button
+                          variant="ghost"
                           size="sm"
                           onClick={() => handleSubmitAsset(asset.id)}
                         >
                           <CheckCircle className="h-4 w-4 text-blue-600" />
                         </Button>
                       )}
-                      {asset.status === 'submitted' && canValidateAsset && (
+                      {asset.status === "submitted" && canValidateAsset && (
                         <>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={() => handleValidateAsset(asset.id, true)}
                           >
                             <CheckCircle className="h-4 w-4 text-green-600" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={() => handleValidateAsset(asset.id, false)}
                           >
@@ -220,9 +266,9 @@ export const Assets: React.FC = () => {
                           </Button>
                         </>
                       )}
-                      {user?.role === 'admin' && (
-                        <Button 
-                          variant="ghost" 
+                      {user?.roles.includes("admin") && (
+                        <Button
+                          variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteAsset(asset.id)}
                         >

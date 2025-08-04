@@ -1,10 +1,10 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { AppDataProvider } from "@/contexts/AppDataContext";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { LoginForm } from "@/components/auth/LoginForm";
@@ -21,10 +21,11 @@ import { Users } from "@/pages/Users";
 import { Logs } from "@/pages/Logs";
 import { Profile } from "@/pages/Profile";
 import NotFound from "./pages/NotFound";
+import { RoleBasedRoute } from "@/components/auth/RoleBasedRoute";
 
 const queryClient = new QueryClient();
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -35,70 +36,141 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     );
   }
 
-  if (!user) {
-    return <LoginForm />;
+  if (user) {
+    return <Navigate to="/" replace />;
   }
 
-  if (user.mustChangePassword) {
-    return <ChangePasswordForm />;
-  }
-
-  return <Layout>{children}</Layout>;
+  return children;
 };
 
-const AppRoutes: React.FC = () => {
+const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/assets" element={
-        <ProtectedRoute>
-          <Assets />
-        </ProtectedRoute>
-      } />
-      <Route path="/config" element={
-        <ProtectedRoute>
-          <Configuration />
-        </ProtectedRoute>
-      } />
-      <Route path="/tickets" element={
-        <ProtectedRoute>
-          <Tickets />
-        </ProtectedRoute>
-      } />
-      <Route path="/workflows" element={
-        <ProtectedRoute>
-          <Workflows />
-        </ProtectedRoute>
-      } />
-      <Route path="/calendar" element={
-        <ProtectedRoute>
-          <Calendar />
-        </ProtectedRoute>
-      } />
-      <Route path="/messages" element={
-        <ProtectedRoute>
-          <Messages />
-        </ProtectedRoute>
-      } />
-      <Route path="/users" element={
-        <ProtectedRoute>
-          <Users />
-        </ProtectedRoute>
-      } />
-      <Route path="/logs" element={
-        <ProtectedRoute>
-          <Logs />
-        </ProtectedRoute>
-      } />
-      <Route path="/profile" element={
-        <ProtectedRoute>
-          <Profile />
-        </ProtectedRoute>
-      } />
+      {/* Public Routes */}
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <LoginForm />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/change-password"
+        element={
+          <RoleBasedRoute>
+            <ChangePasswordForm />
+          </RoleBasedRoute>
+        }
+      />
+
+      {/* Protected Routes */}
+      <Route
+        path="/"
+        element={
+          <RoleBasedRoute>
+            <Layout>
+              <Dashboard />
+            </Layout>
+          </RoleBasedRoute>
+        }
+      />
+
+      {/* Admin Routes */}
+      <Route
+        path="/users"
+        element={
+          <RoleBasedRoute requiredRoles={["admin"]}>
+            <Layout>
+              <Users />
+            </Layout>
+          </RoleBasedRoute>
+        }
+      />
+      <Route
+        path="/logs"
+        element={
+          <RoleBasedRoute requiredRoles={["admin"]}>
+            <Layout>
+              <Logs />
+            </Layout>
+          </RoleBasedRoute>
+        }
+      />
+      <Route
+        path="/config"
+        element={
+          <RoleBasedRoute requiredRoles={["admin"]}>
+            <Layout>
+              <Configuration />
+            </Layout>
+          </RoleBasedRoute>
+        }
+      />
+
+      {/* User Routes */}
+      <Route
+        path="/assets"
+        element={
+          <RoleBasedRoute>
+            <Layout>
+              <Assets />
+            </Layout>
+          </RoleBasedRoute>
+        }
+      />
+      <Route
+        path="/tickets"
+        element={
+          <RoleBasedRoute>
+            <Layout>
+              <Tickets />
+            </Layout>
+          </RoleBasedRoute>
+        }
+      />
+      <Route
+        path="/workflows"
+        element={
+          <RoleBasedRoute>
+            <Layout>
+              <Workflows />
+            </Layout>
+          </RoleBasedRoute>
+        }
+      />
+      <Route
+        path="/calendar"
+        element={
+          <RoleBasedRoute>
+            <Layout>
+              <Calendar />
+            </Layout>
+          </RoleBasedRoute>
+        }
+      />
+      <Route
+        path="/messages"
+        element={
+          <RoleBasedRoute>
+            <Layout>
+              <Messages />
+            </Layout>
+          </RoleBasedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <RoleBasedRoute>
+            <Layout>
+              <Profile />
+            </Layout>
+          </RoleBasedRoute>
+        }
+      />
+
+      {/* Not Found Route */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
@@ -106,19 +178,19 @@ const AppRoutes: React.FC = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="assetflow-theme">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+    <BrowserRouter>
+      <ThemeProvider defaultTheme="light" storageKey="assetflow-theme">
+        <TooltipProvider>
           <AuthProvider>
             <AppDataProvider>
               <AppRoutes />
+              <Toaster />
+              <Sonner />
             </AppDataProvider>
           </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
+        </TooltipProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 

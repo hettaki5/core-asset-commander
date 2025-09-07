@@ -1,52 +1,141 @@
+import React, { useState, useEffect } from "react";
+import { useAssets } from "@/hooks/useAssets";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Plus, Save, X } from "lucide-react";
+import { toast } from "sonner";
+import type { AssetDto, AssetType } from "@/types/backend";
 
-import React, { useState } from 'react';
-import { useAppData } from '@/contexts/AppDataContext';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus } from 'lucide-react';
-import { Asset } from '@/types';
+interface CreateAssetDialogProps {
+  entityType?: AssetType;
+  onAssetCreated?: (asset: AssetDto) => void;
+}
 
-export const CreateAssetDialog: React.FC = () => {
-  const { assetTypes, createAsset } = useAppData();
+export const CreateAssetDialog: React.FC<CreateAssetDialogProps> = ({
+  entityType = "PRODUCT",
+  onAssetCreated,
+}) => {
+  const {
+    configurations,
+    loadingConfigurations,
+    refreshConfigurations,
+    createAsset,
+  } = useAssets(entityType);
+
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [selectedConfiguration, setSelectedConfiguration] =
+    useState<string>("");
   const [formData, setFormData] = useState({
-    name: '',
-    type: '',
-    model: '',
-    serialNumber: '',
-    supplier: '',
-    assignedTo: '',
-    location: '',
-    description: ''
+    name: "",
+    description: "",
+    reference: "",
+    type: entityType,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name || !formData.type || !formData.model) return;
+  // Load configurations when dialog opens or entity type changes
+  useEffect(() => {
+    if (open) {
+      refreshConfigurations(entityType);
+    }
+  }, [open, entityType, refreshConfigurations]);
 
-    const newAsset: Omit<Asset, 'id' | 'createdAt' | 'updatedAt'> = {
-      ...formData,
-      status: 'draft',
-      createdBy: 'current_user_id',
-      sections: []
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setFormData({
+        name: "",
+        description: "",
+        reference: "",
+        type: entityType,
+      });
+      setSelectedConfiguration("");
+    }
+  }, [open, entityType]);
+
+  const handleSubmit = async () => {
+    if (!formData.name.trim()) {
+      toast.error("Le nom est requis");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const assetData: Partial<AssetDto> = {
+        name: formData.name.trim(),
+        description: formData.description.trim() || undefined,
+        reference: formData.reference.trim() || undefined,
+        type: entityType,
+        status: "DRAFT",
+      };
+
+      const newAsset = await createAsset(
+        assetData,
+        selectedConfiguration || undefined
+      );
+
+      toast.success("Asset créé avec succès");
+      setOpen(false);
+
+      if (onAssetCreated) {
+        onAssetCreated(newAsset);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la création:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Erreur lors de la création"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getEntityTypeLabel = (type: AssetType): string => {
+    switch (type) {
+      case "PRODUCT":
+        return "Produit";
+      case "SUPPLIER":
+        return "Fournisseur";
+      case "EQUIPMENT":
+        return "Équipement";
+      default:
+        return type;
+    }
+  };
+
+  const getPlaceholderExample = (type: AssetType, field: string): string => {
+    const examples = {
+      PRODUCT: {
+        name: "T-Shirt Basic Cotton",
+        reference: "PROD-TSH-001",
+      },
+      SUPPLIER: {
+        name: "Global Supplier Ltd",
+        reference: "SUPP-UK-002",
+      },
+      EQUIPMENT: {
+        name: "Machine à Coudre Industrielle",
+        reference: "EQP-MAC-001",
+      },
     };
-
-    createAsset(newAsset);
-    setFormData({
-      name: '',
-      type: '',
-      model: '',
-      serialNumber: '',
-      supplier: '',
-      assignedTo: '',
-      location: '',
-      description: ''
-    });
-    setOpen(false);
+    return examples[type]?.[field] || "";
   };
 
   return (
@@ -59,105 +148,129 @@ export const CreateAssetDialog: React.FC = () => {
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Créer un nouvel Asset</DialogTitle>
+          <DialogTitle>
+            Créer un nouveau {getEntityTypeLabel(entityType)}
+          </DialogTitle>
           <DialogDescription>
-            Ajoutez les informations de base pour créer un nouvel asset
+            Ajoutez les informations de base pour créer un nouvel asset de type{" "}
+            {getEntityTypeLabel(entityType)}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+
+        <div className="space-y-6">
+          {/* Configuration Selection */}
+          {configurations.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="configuration">Configuration (optionnel)</Label>
+              <Select
+                value={selectedConfiguration}
+                onValueChange={setSelectedConfiguration}
+                disabled={loadingConfigurations}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une configuration" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Configuration par défaut</SelectItem>
+                  {configurations
+                    .filter((config) => config.active)
+                    .map((config) => (
+                      <SelectItem
+                        key={config.id}
+                        value={config.configurationName}
+                      >
+                        {config.displayName || config.configurationName}
+                        {config.description && (
+                          <span className="text-xs text-muted-foreground ml-2">
+                            - {config.description}
+                          </span>
+                        )}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              {loadingConfigurations && (
+                <p className="text-xs text-muted-foreground">
+                  Chargement des configurations...
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="name">Nom de l'asset *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="name">
+                Nom <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Ex: Laptop-DEV-001"
-                required
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                }
+                placeholder={`Ex: ${getPlaceholderExample(entityType, "name")}`}
+                disabled={loading}
               />
             </div>
-            <div>
-              <Label htmlFor="type">Type *</Label>
-              <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {assetTypes.map(type => (
-                    <SelectItem key={type.id} value={type.name}>
-                      {type.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="model">Modèle *</Label>
+
+            <div className="space-y-2">
+              <Label htmlFor="reference">Référence</Label>
               <Input
-                id="model"
-                value={formData.model}
-                onChange={(e) => setFormData(prev => ({ ...prev, model: e.target.value }))}
-                placeholder="Ex: Dell Latitude 7420"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="serialNumber">Numéro de série</Label>
-              <Input
-                id="serialNumber"
-                value={formData.serialNumber}
-                onChange={(e) => setFormData(prev => ({ ...prev, serialNumber: e.target.value }))}
-                placeholder="Ex: DL7420001"
-              />
-            </div>
-            <div>
-              <Label htmlFor="supplier">Fournisseur</Label>
-              <Input
-                id="supplier"
-                value={formData.supplier}
-                onChange={(e) => setFormData(prev => ({ ...prev, supplier: e.target.value }))}
-                placeholder="Ex: Dell Technologies"
-              />
-            </div>
-            <div>
-              <Label htmlFor="assignedTo">Assigné à</Label>
-              <Input
-                id="assignedTo"
-                value={formData.assignedTo}
-                onChange={(e) => setFormData(prev => ({ ...prev, assignedTo: e.target.value }))}
-                placeholder="Ex: Jean Dupont"
-              />
-            </div>
-            <div>
-              <Label htmlFor="location">Localisation</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="Ex: Bureau 201"
+                id="reference"
+                value={formData.reference}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    reference: e.target.value,
+                  }))
+                }
+                placeholder={`Ex: ${getPlaceholderExample(
+                  entityType,
+                  "reference"
+                )}`}
+                disabled={loading}
               />
             </div>
           </div>
-          <div>
+
+          <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
               placeholder="Description de l'asset..."
               rows={3}
+              disabled={loading}
             />
           </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+
+          {/* Form Actions */}
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={loading}
+            >
+              <X className="h-4 w-4 mr-2" />
               Annuler
             </Button>
-            <Button type="submit">
-              Créer l'Asset
+            <Button onClick={handleSubmit} disabled={loading}>
+              <Save className="h-4 w-4 mr-2" />
+              {loading ? "Création..." : "Créer l'Asset"}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
 };
+
+export default CreateAssetDialog;

@@ -88,7 +88,8 @@ export const Workflows: React.FC = () => {
     },
   ];
 
-  const allHistory = [...workflowHistory, ...mockHistory];
+  // ✅ Fix: make sure workflowHistory is always iterable
+  const allHistory = [...(workflowHistory || []), ...mockHistory];
 
   // Utilisateurs simulés
   const users = [
@@ -120,7 +121,7 @@ export const Workflows: React.FC = () => {
 
   const getUserName = (userId: string) => {
     const user = users.find((u) => u.id === userId);
-    return user ? user.name : "Utilisateur inconnu";
+    return user ? user.name : "Utilisateur Inconnu";
   };
 
   const getAssetName = (entityId: string, entityType: string) => {
@@ -158,9 +159,7 @@ export const Workflows: React.FC = () => {
 
   const getStatusLabel = (status: string) => {
     const labels: { [key: string]: string } = {
-      draft: "Brouillon",
-      submitted: "Soumis",
-      pending: "En attente",
+      pending: "Soumis",
       approved: "Approuvé",
       rejected: "Rejeté",
       open: "Ouvert",

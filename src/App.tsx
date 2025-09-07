@@ -14,14 +14,27 @@ import { Dashboard } from "@/pages/Dashboard";
 import { Assets } from "@/pages/Assets";
 import { Configuration } from "@/pages/Configuration";
 import { Tickets } from "@/pages/Tickets";
-import { Workflows } from "@/pages/Workflows";
 import { Calendar } from "@/pages/Calendar";
-import { Messages } from "@/pages/Messages";
 import { Users } from "@/pages/Users";
-import { Logs } from "@/pages/Logs";
 import { Profile } from "@/pages/Profile";
+import { Messages } from "@/pages/Messages"; // ✅ Import your actual Messages component
+import { Workflows } from "@/pages/Workflows";
 import NotFound from "./pages/NotFound";
 import { RoleBasedRoute } from "@/components/auth/RoleBasedRoute";
+
+// Import de l'interceptor HTTP
+import "@/utils/http";
+
+const Logs = () => (
+  <div className="p-6">
+    <h1 className="text-3xl font-bold mb-6">Logs</h1>
+    <div className="bg-card rounded-lg border p-6">
+      <p className="text-muted-foreground">
+        Consultation des logs système en cours de développement...
+      </p>
+    </div>
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -40,7 +53,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return <Navigate to="/" replace />;
   }
 
-  return children;
+  return <>{children}</>;
 };
 
 const AppRoutes = () => {
@@ -139,6 +152,8 @@ const AppRoutes = () => {
           </RoleBasedRoute>
         }
       />
+
+      {/* Route Calendar - PRINCIPALE pour ta soutenance */}
       <Route
         path="/calendar"
         element={
@@ -149,12 +164,24 @@ const AppRoutes = () => {
           </RoleBasedRoute>
         }
       />
+
+      {/* ✅ Now using the real Messages component */}
       <Route
         path="/messages"
         element={
           <RoleBasedRoute>
             <Layout>
               <Messages />
+            </Layout>
+          </RoleBasedRoute>
+        }
+      />
+      <Route
+        path="/workflows"
+        element={
+          <RoleBasedRoute>
+            <Layout>
+              <Workflows />
             </Layout>
           </RoleBasedRoute>
         }
@@ -176,6 +203,7 @@ const AppRoutes = () => {
   );
 };
 
+// EXPORT PAR DÉFAUT - c'est ça qui était manquant !
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>

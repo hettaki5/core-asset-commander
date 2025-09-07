@@ -1,4 +1,4 @@
-// src/pages/Dashboard.tsx - VERSION CORRIGÉE
+// src/pages/Dashboard.tsx - REMPLACE TOUT LE CONTENU
 import React from "react";
 import {
   Card,
@@ -8,8 +8,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
-import { useAppData } from "@/contexts/AppDataContext";
+import { useAssets } from "@/hooks/useAssets";
 import {
   Package,
   CheckCircle,
@@ -19,41 +21,20 @@ import {
   Calendar,
   MessageSquare,
   TrendingUp,
+  RefreshCw,
 } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Button } from "@/components/ui/button";
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { assets, tickets, events, messages } = useAppData();
+  const { assets, loading, error, stats, refreshAssets, getAssetsByStatus } =
+    useAssets();
 
   if (!user) return null;
 
-  // Helper pour vérifier les rôles (car user.roles est un tableau)
+  // Helper pour vérifier les rôles
   const hasRole = (role: string) => user.roles.includes(role);
-
-  // Statistiques basées sur le rôle
-  const totalAssets = assets.length;
-  const approvedAssets = assets.filter((a) => a.status === "approved").length;
-  const pendingAssets = assets.filter(
-    (a) => a.status === "submitted" || a.status === "pending"
-  ).length;
-  const myAssets = assets.filter((a) => a.createdBy === user.id).length;
-
-  const openTickets = tickets.filter((t) => t.status === "open").length;
-  const myTickets = tickets.filter(
-    (t) => t.createdBy === user.id || t.assignedTo === user.id
-  ).length;
-
-  const upcomingEvents = events.filter((e) => {
-    const eventDate = new Date(e.startDate);
-    const today = new Date();
-    const inNextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    return eventDate >= today && eventDate <= inNextWeek;
-  }).length;
-
-  const unreadMessages = messages.filter(
-    (m) => m.toUserId === user.id && !m.isRead
-  ).length;
 
   const getWelcomeMessage = () => {
     const hour = new Date().getHours();
@@ -65,32 +46,35 @@ export const Dashboard: React.FC = () => {
   };
 
   const getRoleSpecificStats = () => {
-    // Vérifier les rôles avec user.roles.includes()
     if (hasRole("admin")) {
       return [
         {
           title: "Total des Assets",
-          value: totalAssets,
+          value: stats.totalAssets,
           icon: Package,
           description: "Assets dans le système",
+          color: "text-blue-600",
         },
         {
           title: "En attente de validation",
-          value: pendingAssets,
+          value: stats.pendingAssets,
           icon: Clock,
           description: "Nécessitent une validation",
+          color: "text-orange-600",
         },
         {
-          title: "Tickets ouverts",
-          value: openTickets,
-          icon: Ticket,
-          description: "Tickets à traiter",
+          title: "Approuvés",
+          value: stats.approvedAssets,
+          icon: CheckCircle,
+          description: "Assets validés",
+          color: "text-green-600",
         },
         {
-          title: "Événements à venir",
-          value: upcomingEvents,
-          icon: Calendar,
-          description: "Cette semaine",
+          title: "Mes Assets",
+          value: stats.myAssets,
+          icon: Package,
+          description: "Assets créés par moi",
+          color: "text-purple-600",
         },
       ];
     }
@@ -99,29 +83,37 @@ export const Dashboard: React.FC = () => {
       return [
         {
           title: "Mes Assets",
-          value: myAssets,
+          value: stats.myAssets,
           icon: Package,
           description: "Assets créés par moi",
+          color: "text-blue-600",
         },
         {
           title: "En validation",
-          value: assets.filter(
-            (a) => a.createdBy === user.id && a.status === "submitted"
+          value: getAssetsByStatus("SUBMITTED").filter(
+            (a) => a.createdBy === user.id
           ).length,
           icon: Clock,
           description: "En attente de validation",
+          color: "text-orange-600",
         },
         {
-          title: "Mes Tickets",
-          value: myTickets,
-          icon: Ticket,
-          description: "Tickets assignés ou créés",
+          title: "Approuvés",
+          value: getAssetsByStatus("APPROVED").filter(
+            (a) => a.createdBy === user.id
+          ).length,
+          icon: CheckCircle,
+          description: "Mes assets approuvés",
+          color: "text-green-600",
         },
         {
-          title: "Messages non lus",
-          value: unreadMessages,
-          icon: MessageSquare,
-          description: "Nouveaux messages",
+          title: "Brouillons",
+          value: getAssetsByStatus("DRAFT").filter(
+            (a) => a.createdBy === user.id
+          ).length,
+          icon: AlertTriangle,
+          description: "À compléter",
+          color: "text-gray-600",
         },
       ];
     }
@@ -130,29 +122,31 @@ export const Dashboard: React.FC = () => {
       return [
         {
           title: "À valider",
-          value: pendingAssets,
+          value: stats.pendingAssets,
           icon: AlertTriangle,
           description: "Assets en attente",
+          color: "text-orange-600",
         },
         {
-          title: "Validés ce mois",
-          value: assets.filter(
-            (a) => a.validatedBy === user.id && a.status === "approved"
-          ).length,
+          title: "Total validés",
+          value: stats.approvedAssets,
           icon: CheckCircle,
           description: "Assets approuvés",
+          color: "text-green-600",
         },
         {
-          title: "Tickets assignés",
-          value: tickets.filter((t) => t.assignedTo === user.id).length,
-          icon: Ticket,
-          description: "À traiter",
+          title: "Total Assets",
+          value: stats.totalAssets,
+          icon: Package,
+          description: "Dans le système",
+          color: "text-blue-600",
         },
         {
-          title: "Événements à venir",
-          value: upcomingEvents,
-          icon: Calendar,
-          description: "Cette semaine",
+          title: "Rejetés",
+          value: stats.rejectedAssets,
+          icon: AlertTriangle,
+          description: "Nécessitent correction",
+          color: "text-red-600",
         },
       ];
     }
@@ -161,32 +155,35 @@ export const Dashboard: React.FC = () => {
       return [
         {
           title: "Assets consultables",
-          value: approvedAssets,
+          value: stats.approvedAssets,
           icon: Package,
           description: "Assets approuvés",
+          color: "text-green-600",
         },
         {
           title: "Activité récente",
-          value: Math.min(totalAssets, 12),
+          value: Math.min(stats.totalAssets, 12),
           icon: TrendingUp,
           description: "Dernières mises à jour",
+          color: "text-blue-600",
         },
         {
-          title: "Événements",
-          value: upcomingEvents,
-          icon: Calendar,
-          description: "À venir cette semaine",
+          title: "Total Assets",
+          value: stats.totalAssets,
+          icon: Package,
+          description: "Dans le système",
+          color: "text-gray-600",
         },
         {
-          title: "Messages",
-          value: unreadMessages,
-          icon: MessageSquare,
-          description: "Non lus",
+          title: "En cours",
+          value: stats.pendingAssets,
+          icon: Clock,
+          description: "En validation",
+          color: "text-orange-600",
         },
       ];
     }
 
-    // Cas par défaut
     return [];
   };
 
@@ -198,8 +195,42 @@ export const Dashboard: React.FC = () => {
     return "Utilisateur";
   };
 
-  const stats = getRoleSpecificStats();
+  const roleStats = getRoleSpecificStats();
   const recentAssets = assets.slice(0, 5);
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {getWelcomeMessage()}
+            </h1>
+            <p className="text-muted-foreground">Tableau de bord PLM</p>
+          </div>
+          <Badge variant="outline" className="text-sm">
+            {getRoleLabel()}
+          </Badge>
+        </div>
+
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>Erreur lors du chargement des données: {error}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refreshAssets}
+              className="ml-4"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Réessayer
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -213,29 +244,57 @@ export const Dashboard: React.FC = () => {
             Voici un aperçu de votre activité sur la plateforme AssetFlow
           </p>
         </div>
-        <Badge variant="outline" className="text-sm">
-          {getRoleLabel()}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-sm">
+            {getRoleLabel()}
+          </Badge>
+          {!loading && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refreshAssets}
+              disabled={loading}
+            >
+              <RefreshCw
+                className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Statistiques principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <Card key={index} className="transition-smooth hover:shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
-                {stat.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+        {loading
+          ? // Loading skeletons
+            Array.from({ length: 4 }).map((_, index) => (
+              <Card key={index} className="transition-smooth">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-4" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-16 mb-1" />
+                  <Skeleton className="h-3 w-32" />
+                </CardContent>
+              </Card>
+            ))
+          : roleStats.map((stat, index) => (
+              <Card key={index} className="transition-smooth hover:shadow-md">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {stat.title}
+                  </CardTitle>
+                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stat.value}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stat.description}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -246,27 +305,44 @@ export const Dashboard: React.FC = () => {
             <CardDescription>Derniers assets créés ou modifiés</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentAssets.map((asset) => (
-                <div
-                  key={asset.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
-                  <div className="flex-1">
-                    <h4 className="font-medium">{asset.name}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {asset.type}
-                    </p>
+            {loading ? (
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div className="flex-1">
+                      <Skeleton className="h-4 w-32 mb-2" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <Skeleton className="h-6 w-20" />
                   </div>
-                  <StatusBadge status={asset.status} />
-                </div>
-              ))}
-              {recentAssets.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Aucun asset récent
-                </p>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentAssets.map((asset) => (
+                  <div
+                    key={asset.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div className="flex-1">
+                      <h4 className="font-medium">{asset.name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {asset.type}
+                      </p>
+                    </div>
+                    <StatusBadge status={asset.status} />
+                  </div>
+                ))}
+                {recentAssets.length === 0 && !loading && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Aucun asset récent
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -279,45 +355,52 @@ export const Dashboard: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {assets.slice(0, 3).map((asset, index) => (
-                <div key={asset.id} className="flex items-start gap-3">
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Package className="h-4 w-4 text-primary" />
+            {loading ? (
+              <div className="space-y-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <div className="flex-1">
+                      <Skeleton className="h-4 w-48 mb-1" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm">
-                      <span className="font-medium">{asset.name}</span> a été{" "}
-                      {asset.status === "approved"
-                        ? "approuvé"
-                        : asset.status === "submitted"
-                        ? "soumis pour validation"
-                        : "créé"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(asset.updatedAt).toLocaleDateString("fr-FR")}
-                    </p>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {assets.slice(0, 5).map((asset, index) => (
+                  <div key={asset.id} className="flex items-start gap-3">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Package className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm">
+                        <span className="font-medium">{asset.name}</span> a été{" "}
+                        {asset.status === "APPROVED"
+                          ? "approuvé"
+                          : asset.status === "SUBMITTED"
+                          ? "soumis pour validation"
+                          : asset.status === "PENDING_VALIDATION"
+                          ? "mis en attente de validation"
+                          : asset.status === "REJECTED"
+                          ? "rejeté"
+                          : "créé"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(asset.updatedAt).toLocaleDateString("fr-FR")}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
-              {tickets.slice(0, 2).map((ticket) => (
-                <div key={ticket.id} className="flex items-start gap-3">
-                  <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
-                    <Ticket className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm">
-                      Ticket <span className="font-medium">{ticket.title}</span>{" "}
-                      créé
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(ticket.createdAt).toLocaleDateString("fr-FR")}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                {assets.length === 0 && !loading && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Aucune activité récente
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -333,7 +416,10 @@ export const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button className="p-4 border rounded-lg hover:bg-muted/50 transition-smooth text-left">
+              <button
+                className="p-4 border rounded-lg hover:bg-muted/50 transition-smooth text-left"
+                onClick={() => (window.location.href = "/assets?action=create")}
+              >
                 <Package className="h-8 w-8 text-primary mb-2" />
                 <h4 className="font-medium">Créer un asset</h4>
                 <p className="text-sm text-muted-foreground">
@@ -342,20 +428,28 @@ export const Dashboard: React.FC = () => {
               </button>
 
               {hasRole("admin") && (
-                <button className="p-4 border rounded-lg hover:bg-muted/50 transition-smooth text-left">
+                <button
+                  className="p-4 border rounded-lg hover:bg-muted/50 transition-smooth text-left"
+                  onClick={() => (window.location.href = "/config")}
+                >
                   <Ticket className="h-8 w-8 text-orange-500 mb-2" />
-                  <h4 className="font-medium">Gérer les tickets</h4>
+                  <h4 className="font-medium">Gérer les configurations</h4>
                   <p className="text-sm text-muted-foreground">
-                    Traiter les demandes
+                    Configurer les formulaires
                   </p>
                 </button>
               )}
 
-              <button className="p-4 border rounded-lg hover:bg-muted/50 transition-smooth text-left">
+              <button
+                className="p-4 border rounded-lg hover:bg-muted/50 transition-smooth text-left"
+                onClick={() =>
+                  (window.location.href = "/assets?status=PENDING_VALIDATION")
+                }
+              >
                 <Calendar className="h-8 w-8 text-blue-500 mb-2" />
-                <h4 className="font-medium">Planifier un événement</h4>
+                <h4 className="font-medium">Assets à valider</h4>
                 <p className="text-sm text-muted-foreground">
-                  Ajouter au calendrier
+                  Voir les validations en attente
                 </p>
               </button>
             </div>

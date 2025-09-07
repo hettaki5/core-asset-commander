@@ -105,6 +105,72 @@ export type AssetFieldValue =
   | string[]
   | null;
 
+export interface JiraTicketDto {
+  id: string;
+  key: string;
+  summary: string;
+  description?: string;
+  status: string;
+  priority: string;
+  issueType: string;
+  creator?: string;
+  assignee?: string;
+  created: string; // LocalDateTime en ISO string
+  updated: string; // LocalDateTime en ISO string
+  labels: string[];
+  projectKey: string;
+}
+
+export interface TicketStats {
+  totalTickets: number;
+  statusBreakdown: Record<string, number>;
+  typeBreakdown: Record<string, number>;
+  lastUpdate: number;
+}
+
+export interface TicketRefreshResponse {
+  status: "success" | "error";
+  message: string;
+  ticketCount?: string;
+  timestamp: string;
+}
+
+export interface TicketHealthResponse {
+  status: "UP" | "DOWN";
+  service: string;
+  timestamp: string;
+  version: string;
+}
+
+export interface TicketFilters {
+  search: string;
+  status: string;
+  issueType: string;
+  priority: string;
+  assignee: string;
+}
+
+// ✅ MISE À JOUR: Interface Ticket existante (garde pour rétrocompatibilité)
+export interface Ticket {
+  id: string;
+  title: string; // Équivalent à summary dans Jira
+  description: string;
+  type: "configuration" | "support" | "bug" | "feature";
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "open" | "in_progress" | "resolved" | "closed";
+  assignedTo?: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  dueDate?: string;
+  resolution?: string;
+
+  // ✅ NOUVEAUX CHAMPS pour compatibilité Jira
+  key?: string; // Clé Jira (ex: PLM-123)
+  issueType?: string; // Type Jira
+  projectKey?: string; // Projet Jira
+  labels?: string[]; // Labels Jira
+}
 // ✅ GARDE TES INTERFACES EXISTANTES (Assets, Tickets, etc.)
 export interface Asset {
   id: string;
